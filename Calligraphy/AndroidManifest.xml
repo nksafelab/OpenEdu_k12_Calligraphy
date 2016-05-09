@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<manifest package="com.jinke.calligraphy.app.branch" android:versionCode="81" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.000.201206271339">
+    <uses-sdk android:minSdkVersion="11"/>
+    <application android:icon="@drawable/ccnote" android:label="@string/app_name"
+        android:largeHeap="true">
+        <activity android:name=".Start" 
+            android:configChanges="orientation|keyboardHidden" 
+            android:screenOrientation="portrait" 
+            android:label="@string/app_name"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                 <category android:name="android.intent.category.DEFAULT" /><!--必须，否则无效-->
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jinke.calligraphy.fliplayout.PicActivity"/>
+        <receiver android:name="com.jinke.calligraphy.date.AlarmReceiver">
+            <intent-filter>
+                <action android:name="com.jinke.calligraphy.action.BC_ACTION"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name="com.jinke.calligraphy.backup.BackupReceiver">
+            <intent-filter>
+                <action android:name="jinke.readings.sync"/>
+            </intent-filter>
+        </receiver>
+        <service android:name=".TransmitProtocolService"/>
+        <activity android:name="com.jinke.calligraphy.backup.KanBoxActivity"/>
+        <activity android:name="com.jinke.kanbox.WeiboWeb"/>
+        <activity android:name="com.jinke.calligraphy.activity.MainTab" android:theme="@style/dialog"/>
+        <activity android:name="com.jinke.calligraphy.activity.DownloadProgressActivity" android:theme="@style/dialog"/>
+        <activity android:name="com.jinke.calligraphy.activity.Cloud"/>
+        <activity android:name="com.jinke.calligraphy.activity.Local"/>
+        <activity android:name="com.jinke.calligraphy.activity.CalligraphyIndex" android:theme="@style/dialog"/>
+        <activity android:name="com.jinke.calligraphy.activity.VideoActivity"/>
+        <activity android:name="com.jinke.pdfcreator.CloudActivity"/>
+   		<activity android:name="com.jinke.calligraphy.app.branch.SelectPopWindow" android:theme="@style/MyDialogStyleBottom"></activity>
+    </application>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.READ_CALENDAR"/>
+    <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    
+    
+</manifest>

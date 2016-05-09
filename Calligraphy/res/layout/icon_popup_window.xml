@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:gravity="center_horizontal"
+  android:background="@drawable/icon_popup_bg">
+  
+			<GridView
+				android:id="@+id/icon_popup_gridView"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:columnWidth="100dip"
+				android:numColumns="4"
+				android:horizontalSpacing="10dp"
+				android:verticalSpacing="20dp"
+				android:stretchMode="columnWidth"
+				android:gravity="center"
+			></GridView>
+			
+			<Button
+				android:id="@+id/icon_popup_cancleBtn" 
+				android:layout_alignParentBottom="true"
+				
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:text = "取消"
+				android:layout_centerHorizontal="true"
+				android:layout_gravity="center_horizontal"/>
+   
+</RelativeLayout>

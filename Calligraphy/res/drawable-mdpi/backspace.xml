@@ -1,0 +1,7 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+	<item android:state_pressed="true" android:drawable="@drawable/br_backspace" />
+
+	<item android:drawable="@drawable/bn_backspace" />
+</selector>

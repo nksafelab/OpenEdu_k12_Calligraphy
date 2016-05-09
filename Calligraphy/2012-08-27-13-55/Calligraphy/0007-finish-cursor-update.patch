@@ -1,0 +1,83 @@
+From 725267a97aa4c0535184455c6502e45f15f9cd46 Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Thu, 16 Aug 2012 17:17:23 +0800
+Subject: [PATCH 7/9] finish cursor update
+
+---
+ .../jinke/calligraphy/app/branch/Calligraph.java   |   11 +++++++++--
+ .../app/branch/EditableCalligraphy.java            |   16 +++++++++++++---
+ 2 files changed, 22 insertions(+), 5 deletions(-)
+
+diff --git a/src/com/jinke/calligraphy/app/branch/Calligraph.java b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+index d0bde7b..644c537 100755
+--- a/src/com/jinke/calligraphy/app/branch/Calligraph.java
++++ b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+@@ -803,9 +803,16 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 					} else
+ 						Toast.makeText(mContext, "No Need To Undo", Toast.LENGTH_SHORT).show();
+ 						*/
+-					view.cursorBitmap.addNewMindMap();
++					
+ 					if(view.getTouchMode() instanceof HandWriteMode){
+-						((HandWriteMode)view.getTouchMode()).setMindMapEditStatusTrue();
++						if(((HandWriteMode)view.getTouchMode()).isMindMapEditableStatus()){
++							((HandWriteMode)view.getTouchMode()).setMindMapEditStatusFalse();
++							view.cursorBitmap.insertEndOfLine();
++							Start.status.modified("insert EndofLine");
++						}else{
++							((HandWriteMode)view.getTouchMode()).setMindMapEditStatusTrue();
++							view.cursorBitmap.addNewMindMap();
++						}
+ 					}
+ 				}
+ 			}
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index d057c95..18891fc 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -1117,6 +1117,7 @@ public class EditableCalligraphy implements Command{
+ 				mindMapBeginY = y;
+ 				MindMapItem mapItem = e.getMindMapItem();
+ 				updateMindMap(mapItem, p,x);
++				
+ 			}else{
+ 			
+ 				 if(e.type != EditableCalligraphyItem.Types.Space && e.type != EditableCalligraphyItem.Types.EnSpace){
+@@ -1224,8 +1225,13 @@ public class EditableCalligraphy implements Command{
+ 			startRecycleInVisiableBitmap();
+ 		}
+ 		if( this.currentpos >= charList.size()){
+-			setCursorXY(x, y);
+-			dispearCurrentCursor();
++			if(mv.getTouchMode() instanceof HandWriteMode  &&
++					((HandWriteMode)mv.getTouchMode()).isMindMapEditableStatus()){
++				//如果是正在编辑导图状态，光标不置于末尾
++			}else{
++				setCursorXY(x, y);
++				dispearCurrentCursor();
++			}
+ 		}
+ 		
+ 		if(available.getAid() == 4){
+@@ -1277,13 +1283,17 @@ public class EditableCalligraphy implements Command{
+ 		mapItem.outdot.setLocateDot(x, y+available.getAlinespace()/2);
+ 		
+ 		mapItem.setButtom(y+available.getAlinespace());
++		if(mapItem == getCurrentMindMapItem()){
++			setCursorXY(x, y);
++			dispearCurrentCursor();
++		}
+ 		
+ 		if(mapItem.getChildList() != null && mapItem.getChildList().size()!= 0){
+ 			MindMapItem tempItem = null;
+ 			preX = maxX + 100;
+ 			for(int j=0;j<mapItem.getChildList().size();j++){
+ 				tempItem = mapItem.getChildList().get(j);
+-				y += available.getAlinespace();//有问题
++				y += available.getAlinespace();
+ 				updateMindMap(tempItem, p,preX);
+ 			}
+ 		}
+-- 
+1.7.4.1
+

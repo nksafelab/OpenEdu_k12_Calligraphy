@@ -1,0 +1,776 @@
+From 97205eebe2775d6541604620a204d877c9ed53c8 Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Mon, 20 Aug 2012 16:08:20 +0800
+Subject: [PATCH 8/9] finish mindmap storage
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+基本完成翰林算子编辑存储功能
+---
+ AndroidManifest.xml                                |    2 +-
+ res/drawable-hdpi/buttomline.png                   |  Bin 354 -> 192 bytes
+ src/com/jinke/calligraphy/activity/Properyt.java   |    2 +-
+ .../app/branch/EditableCalligraphy.java            |  137 ++++++++++++--------
+ src/com/jinke/calligraphy/app/branch/Start.java    |    7 +-
+ .../jinke/calligraphy/database/CalligraphyDB.java  |   84 ++++++++++++-
+ src/com/jinke/mindmap/DrawFoldLine.java            |   16 +++
+ src/com/jinke/mindmap/DrawLine.java                |    8 +
+ src/com/jinke/mindmap/DrawOperate.java             |   14 ++
+ src/com/jinke/mindmap/DrawOvalFoldLine.java        |   46 +++++++
+ src/com/jinke/mindmap/DrawOvalLine.java            |   33 +++++
+ src/com/jinke/mindmap/DrawStraightLine.java        |   13 ++
+ src/com/jinke/mindmap/LocateDot.java               |    2 +-
+ src/com/jinke/mindmap/MindMapItem.java             |   35 ++++-
+ 14 files changed, 330 insertions(+), 69 deletions(-)
+ create mode 100644 src/com/jinke/mindmap/DrawFoldLine.java
+ create mode 100644 src/com/jinke/mindmap/DrawLine.java
+ create mode 100644 src/com/jinke/mindmap/DrawOperate.java
+ create mode 100644 src/com/jinke/mindmap/DrawOvalFoldLine.java
+ create mode 100644 src/com/jinke/mindmap/DrawOvalLine.java
+ create mode 100644 src/com/jinke/mindmap/DrawStraightLine.java
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index 8db9bb1..b7d815b 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -1,6 +1,6 @@
+ <?xml version='1.0' encoding='utf-8'?>
+ <manifest package="com.jinke.calligraphy.app.branch" android:versionCode="81" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.000.201206271339">
+-    <uses-sdk android:minSdkVersion="10"/>
++    <uses-sdk android:minSdkVersion="11"/>
+     <application android:icon="@drawable/ccnote" android:label="@string/app_name"
+         >
+         <activity android:name=".Start" 
+diff --git a/res/drawable-hdpi/buttomline.png b/res/drawable-hdpi/buttomline.png
+index b83c7ef4557f4194742db3d59e029e5807bd524f..f21fc65f674ead2181d6f3104ae81302e9cc343a 100644
+GIT binary patch
+delta 80
+zcmaFFbbxV!IVS@M{B+)3KhZ&fLy(ipV3E|jw22uS2GX7`jv*GOllMG$`*(ig3<kBf
+hL>4z&<5!Ya3=AvQGv%jp+h>CGdb;|#taD0e0sty<8ZiI>
+
+delta 243
+zcmV<P01W@Y0pbFXHwpg${{a7>y{D6rKp+SQ2|Ec+FlnEWXefWZNkl<ZILp0~F^WP#
+z5JX@13}3{+K=7O<Uc>`<3y-nc9zqN>Ftn%3;E%!v3NCyLnwp`Ls;)AfFG7F<Bp|>6
+zPcRri1ITy@>GjS8WS?nahs{>2Va7ay(r!2+Es-V7lf;oq7j2`sPZ_>qrXGKOQJt~4
+z1w#Zy0hUOknZHx;F6tBRM|ixaOy;!PYnd=aKnuvx%(EJn^uGNMa-ejcI+^u?tCE^Y
+tRePF98qI|XYBu~$OU&Mxbx`?AGIw~BY9~=oA1wd?002ovPDHLkV1mDdX~_Tp
+
+diff --git a/src/com/jinke/calligraphy/activity/Properyt.java b/src/com/jinke/calligraphy/activity/Properyt.java
+index ac1956a..4ce4c9c 100644
+--- a/src/com/jinke/calligraphy/activity/Properyt.java
++++ b/src/com/jinke/calligraphy/activity/Properyt.java
+@@ -9,5 +9,5 @@ public interface Properyt {
+ 	
+ 	public static final int MINDMAP_REQUEST_CODE = 121212;
+ 	
+-	public static final int ARROW_FLIP = 50;
++	public static final int ARROW_FLIP = 70;
+ }
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index 18891fc..8f31d8a 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -1,35 +1,11 @@
+ package com.jinke.calligraphy.app.branch;
+ 
+ import hallelujah.cal.CalligraphyVectorUtil;
+-import hallelujah.cal.SingleWord;
+ 
+-import java.io.File;
+-import java.io.FileInputStream;
+-import java.io.FileNotFoundException;
+-import java.io.IOException;
+-import java.io.InputStream;
+-import java.util.ArrayList;
+ import java.util.Calendar;
+ import java.util.LinkedList;
+ import java.util.List;
+ 
+-import com.jinke.calligraphy.activity.VideoActivity;
+-import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.ItemStatus;
+-import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.Types;
+-import com.jinke.calligraphy.database.CDBPersistent;
+-import com.jinke.calligraphy.database.CalligraphyDB;
+-import com.jinke.calligraphy.template.Available;
+-import com.jinke.calligraphy.template.WolfTemplateUtil;
+-import com.jinke.calligraphy.touchmode.CursorScaleMode;
+-import com.jinke.calligraphy.touchmode.HandWriteMode;
+-import com.jinke.mindmap.MindMapItem;
+-import com.jinke.mywidget.FlipImageView;
+-import com.jinke.mywidget.interpolator.EasingType.Type;
+-import com.jinke.single.BitmapCount;
+-import com.jinke.single.BitmapUtils;
+-import com.jinke.single.LogUtil;
+-
+-import android.content.ContentResolver;
+ import android.content.Intent;
+ import android.graphics.Bitmap;
+ import android.graphics.BitmapFactory;
+@@ -45,9 +21,26 @@ import android.media.MediaPlayer.OnCompletionListener;
+ import android.net.Uri;
+ import android.util.Log;
+ import android.view.View;
+-import android.widget.Button;
+ import android.widget.Toast;
+-import android.widget.VideoView;
++
++import com.jinke.calligraphy.activity.VideoActivity;
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.ItemStatus;
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.Types;
++import com.jinke.calligraphy.database.CDBPersistent;
++import com.jinke.calligraphy.database.CalligraphyDB;
++import com.jinke.calligraphy.template.Available;
++import com.jinke.calligraphy.template.WolfTemplateUtil;
++import com.jinke.calligraphy.touchmode.HandWriteMode;
++import com.jinke.mindmap.DrawFoldLine;
++import com.jinke.mindmap.DrawOperate;
++import com.jinke.mindmap.DrawOvalFoldLine;
++import com.jinke.mindmap.DrawOvalLine;
++import com.jinke.mindmap.DrawStraightLine;
++import com.jinke.mindmap.MindMapItem;
++import com.jinke.mywidget.FlipImageView;
++import com.jinke.single.BitmapCount;
++import com.jinke.single.BitmapUtils;
++import com.jinke.single.LogUtil;
+ 
+ public class EditableCalligraphy implements Command{
+ 	LinkedList<EditableCalligraphyItem> charList;
+@@ -455,24 +448,36 @@ public class EditableCalligraphy implements Command{
+ 				charList.add(currentpos, e);
+ 			}
+ 			
++			boolean result = false;
++			
++			if(mv.getTouchMode() instanceof HandWriteMode){
++				boolean isMindmapEdit = ((HandWriteMode)mv.getTouchMode()).isMindMapEditableStatus();
++				if(isMindmapEdit){
++					currentMindMapItem.addNewWord(e);
++					result = CalligraphyDB.getInstance(Start.context).saveOperating(
++							CalligraphyDB.OP_ADD_MIND_WORD,
++							currentpos,
++							WolfTemplateUtil.getCurrentTemplate().getId(),
++							Start.getPageNum(), 
++							available.getAid() -1, e);
++				}else{
++					result = CalligraphyDB.getInstance(Start.context).saveOperating(
++							CalligraphyDB.OP_ADD_WORD,
++							currentpos,
++							WolfTemplateUtil.getCurrentTemplate().getId(),
++							Start.getPageNum(), 
++							available.getAid() -1, e);
++				}
++			}
++			
+ 			
+-			boolean result = CalligraphyDB.getInstance(Start.context).saveOperating(
+-					CalligraphyDB.OP_ADD_WORD,
+-					currentpos,
+-					WolfTemplateUtil.getCurrentTemplate().getId(),
+-					Start.getPageNum(), 
+-					available.getAid() -1, e);
+ 			if(!result)
+ 				Log.e(TAG, "save error !!!!!!!!!!!!!!!!!!!!!!!!!!!");
+ 			
+ 			currentpos++;
+ 			setFlipDst(true,"insertVEditable");
+ 			
+-			if(mv.getTouchMode() instanceof HandWriteMode){
+-				boolean isMindmapEdit = ((HandWriteMode)mv.getTouchMode()).isMindMapEditableStatus();
+-				if(isMindmapEdit)
+-					currentMindMapItem.addNewWord(e);
+-			}
++			
+ 		}
+ 	}
+ 	public EditableCalligraphyItem insertImage(Bitmap m, Matrix matrix,Uri imageUri)
+@@ -1102,6 +1107,7 @@ public class EditableCalligraphy implements Command{
+ 					lastLineStartID = i + 1;
+ 					Log.e("mindmap", "endofline lastLineStartID set:" + lastLineStartID + " currentPos:" + currentpos);
+ 				}
++				drawMapBegin = false;
+ 				continue;
+ 			}
+ 			
+@@ -1257,7 +1263,12 @@ public class EditableCalligraphy implements Command{
+ 		//minditem类中添加LocatDot类记录每个节点的画线的出发点和接>    入点
+ 		//行距available.getAlinespace()
+ 		//在画该节点的第一个字之前记录这个节点画线的接入点//
+-		mapItem.indot.setLocateDot(x, y+available.getAlinespace()/2);
++		
++		if(flip_dst < BaseBitmap.TITLE_HEIGHT){
++			mapItem.indot.setLocateDot(x, y+available.getAlinespace()/2);
++		}else{
++			mapItem.indot.setLocateDot(x, y+available.getAlinespace()/2 - flip_dst + BaseBitmap.TITLE_HEIGHT);
++		}
+ 		for(l=0;l<mapItem.getCharList().size();l++){
+ 			e = mapItem.getCharList().get(l);
+ 			float mappad = (CursorDrawBitmap.mIntervalHeight  - e.getHeight())  /1.2f;
+@@ -1280,7 +1291,11 @@ public class EditableCalligraphy implements Command{
+ 				maxX = x;
+ 		}
+ 		//画完了这个节点的时候记录这个节点画线的出发点
+-		mapItem.outdot.setLocateDot(x, y+available.getAlinespace()/2);
++		if(flip_dst < BaseBitmap.TITLE_HEIGHT){
++			mapItem.outdot.setLocateDot(x, y+available.getAlinespace()/2);
++		}else{
++			mapItem.outdot.setLocateDot(x, y+available.getAlinespace()/2- flip_dst + BaseBitmap.TITLE_HEIGHT);
++		}
+ 		
+ 		mapItem.setButtom(y+available.getAlinespace());
+ 		if(mapItem == getCurrentMindMapItem()){
+@@ -1290,7 +1305,7 @@ public class EditableCalligraphy implements Command{
+ 		
+ 		if(mapItem.getChildList() != null && mapItem.getChildList().size()!= 0){
+ 			MindMapItem tempItem = null;
+-			preX = maxX + 100;
++			preX = maxX + 50;
+ 			for(int j=0;j<mapItem.getChildList().size();j++){
+ 				tempItem = mapItem.getChildList().get(j);
+ 				y += available.getAlinespace();
+@@ -1299,19 +1314,21 @@ public class EditableCalligraphy implements Command{
+ 		}
+ 		//在计算了这个节点的所有子节点的出发点和接入点后画线（仅对本节点的一级节点）
+ 			 Paint mp = new Paint();
+-			 mp.setColor(Color.RED);
++			 mp.setColor(0xff87CEFA);
+ 			 mp.setStyle(Style.STROKE);
+ 			 mp.setStrokeWidth(4);
+-			 if(mapItem.getChildList() != null && mapItem.getChildList().size()!= 0){
+-			 for(int j=0;j<mapItem.getChildList().size();j++){
+-			   c.drawLine(
+-					   mapItem.outdot.x, 
+-			   			mapItem.outdot.y, 
+-			   			mapItem.getChildList().get(j).indot.x, 
+-			   			mapItem.getChildList().get(j).indot.y,
+-			   			mp);
+-			 }
+-		 }
++			 DrawOperate drawOperate = null;
++//			 drawOperate = new DrawOperate(new DrawStraightLine());
++//             drawOperate = new DrawOperate(new DrawFoldLine());
++//             drawOperate = new DrawOperate(new DrawOvalLine());
++             drawOperate = new DrawOperate(new DrawOvalFoldLine());
++             if(mapItem.getChildList() != null && mapItem.getChildList().size()!=
++0){
++                     for(int j=0;j<mapItem.getChildList().size();j++){
++                             drawOperate.operate(mapItem.outdot,
++mapItem.getChildList().get(j).indot, c, mp);
++}
++             }
+ 		return;
+ 	}
+ 	
+@@ -3077,6 +3094,8 @@ public class EditableCalligraphy implements Command{
+ 		float[] eValues = new float[9];
+ 		
+ 		Rect r;
++		int width;
++		int height;
+ 		for( i =0 ; i< charList.size(); i++){
+ 			EditableCalligraphyItem e = charList.get(i);
+ 			LogUtil.getInstance().e("mindmap", "id:"+e.getItemID() + " special:" + e.isSpecial());
+@@ -3086,12 +3105,20 @@ public class EditableCalligraphy implements Command{
+ 			
+ 			e.getMatrix().getValues(eValues);
+ 			initScale = eValues[0];
++			width = e.getWidth();
++			height = e.getHeight();
++			if(width < 50){
++				width = 50;
++			}
++			if(height < 50){
++				height = 50;
++			}
+ 			
+ 			r = new Rect(
+ 					e.getCurPosX() ,
+ 					e.getCurPosY()- flip_dst - cursorMargin,
+-					(int)(e.getCurPosX()+ e.getWidth() + HMargin),
+-					(int)(e.getCurPosY()+ e.getHeight()  + VMargin*scale - flip_dst) + cursorMargin);
++					(int)(e.getCurPosX()+ width + HMargin + 5),
++					(int)(e.getCurPosY()+ height  + VMargin*scale - flip_dst) + cursorMargin + 20);
+ 			LogUtil.getInstance().e("mindmap", "id:" + e.getItemID() + " rect:" + r.toShortString());
+ 			if(r.contains((int)x, (int)y)){
+ 				return e;
+@@ -3123,6 +3150,10 @@ public class EditableCalligraphy implements Command{
+ 				if(item.type == Types.CharsWithStroke){
+ 					Log.e("mindmap", "add new word " + i);
+ 					map.addNewWord(item);
++					
++					//update databases
++					CalligraphyDB.getInstance(Start.context).updateMindmapItem(Start.getPageNum(), 3, item.getItemID(), item);
++					
+ 				}
+ 			}//end for
+ 			setCurrentMindMapItem(map);
+diff --git a/src/com/jinke/calligraphy/app/branch/Start.java b/src/com/jinke/calligraphy/app/branch/Start.java
+index b1bc9ac..cb8d3ea 100644
+--- a/src/com/jinke/calligraphy/app/branch/Start.java
++++ b/src/com/jinke/calligraphy/app/branch/Start.java
+@@ -550,8 +550,8 @@ public class Start extends Activity{
+ 		super.onCreate(savedInstanceState);
+ 		Log.e("Start", "!!!!!!!!!!!!!onCreate");
+ 		
+-//		getWindow().getDecorView().setSystemUiVisibility
+-//		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
++		getWindow().getDecorView().setSystemUiVisibility
++		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
+ 		
+ 		inkSpreadDialog = new InkSpreadDialog(this);
+ 		//start thread to sync Databases and file dir
+@@ -1151,7 +1151,8 @@ public class Start extends Activity{
+ 		// TODO Auto-generated method stub
+ 		Log.e("Start", "!!!!!!!!!!!!!resume");
+ 		super.onResume();
+-		
++		getWindow().getDecorView().setSystemUiVisibility
++		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
+ //		LoginInfo = getSharedPreferences("LoginInfo", MODE_WORLD_WRITEABLE);
+ //		Boolean isUpdate = LoginInfo.getBoolean("update", false);
+ //		LoginInfo.edit().putBoolean("update", false);
+diff --git a/src/com/jinke/calligraphy/database/CalligraphyDB.java b/src/com/jinke/calligraphy/database/CalligraphyDB.java
+index a1b019e..1ac6acc 100644
+--- a/src/com/jinke/calligraphy/database/CalligraphyDB.java
++++ b/src/com/jinke/calligraphy/database/CalligraphyDB.java
+@@ -9,6 +9,7 @@ import java.io.FileInputStream;
+ import java.io.FileNotFoundException;
+ import java.io.IOException;
+ import java.util.Calendar;
++import java.util.HashMap;
+ import java.util.LinkedList;
+ 
+ import com.jinke.calligraphy.app.branch.EditableCalligraphyItem;
+@@ -17,7 +18,9 @@ import com.jinke.calligraphy.app.branch.R;
+ import com.jinke.calligraphy.app.branch.Start;
+ import com.jinke.calligraphy.app.branch.VEditableCalligraphyItem;
+ import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.Types;
++import com.jinke.mindmap.MindMapItem;
+ import com.jinke.single.BitmapCount;
++import com.jinke.single.LogUtil;
+ 
+ import android.content.ContentResolver;
+ import android.content.ContentValues;
+@@ -35,9 +38,10 @@ public class CalligraphyDB {
+ 	public static int INIT_WORD_COUNT = 270;
+ 	
+ 	public static final int OP_ADD_WORD = 1;
++	public static final int OP_ADD_MIND_WORD = 2;
+ 	public static final int OP_DELETE_WORD = -1;
+ 
+-	private static final int DATEBASE_VERSION = 1;
++	private static final int DATEBASE_VERSION = 2;
+ 	private static final String DATABASE_NAME = "calligraphy.db";
+ 	
+ 	private static final String WORD_TABLE = "word";
+@@ -71,6 +75,11 @@ public class CalligraphyDB {
+ 	//add option type 这种方式处理数据库更新时的操作：添加字段；
+ 	private static final String ADD_FLIPDST = "alter table word add flipdstx integer;";
+ 	
++	//添加思维导图，增加导图id字段和父节点id字段
++	private static final String ADD_MINDID = "alter table word add mindid integer;";
++	private static final String ADD_MINDPARENTID = "alter table word add mindparentid integer;";
++	
++	
+ 	private SQLiteDatabase db;
+ 	
+ 	private static CalligraphyDB calligraphyDB;
+@@ -84,8 +93,12 @@ public class CalligraphyDB {
+ 		try {
+ 			if(db.getVersion() < 1){
+ 				db.execSQL(ADD_FLIPDST);
++				db.execSQL(ADD_MINDID);
++				db.execSQL(ADD_MINDPARENTID);
+ 			}else if (db.getVersion() == 1){
+ 				db.execSQL(ADD_FLIPDST);
++				db.execSQL(ADD_MINDID);
++				db.execSQL(ADD_MINDPARENTID);
+ 			}
+ 		} catch (Exception e) {
+ 			// TODO: handle exception
+@@ -130,6 +143,7 @@ public class CalligraphyDB {
+ 			SingleWord word = eItem.getWord();
+ 			Log.v("vectorword", "saveOperating word:" + (word == null));
+ 			switch (OP_type) {
++			case OP_ADD_MIND_WORD:
+ 			case OP_ADD_WORD:
+ 				if(word != null){	
+ 					CalligraphyVectorUtil.saveWordToFile(word, pagenum, available_id, itemid);
+@@ -172,6 +186,14 @@ public class CalligraphyDB {
+ 			initalValues.put("matrix", matrix);
+ 			initalValues.put("uri", uri);
+ 			initalValues.put("flipdstx", flipdstx);
++			
++			
++			if(OP_type == OP_ADD_MIND_WORD){
++				initalValues.put("mindid", eItem.getMindMapItem().getMindID());
++				LogUtil.getInstance().e("mindmap", "save mindID:" + eItem.getMindMapItem().getMindID());
++				initalValues.put("mindparentid", eItem.getMindMapItem().getParentID());
++			}
++			
+ 			try {
+ 				if(EditableCalligraphyItem.getType(eItem.getCharType()) == Types.CharsWithStroke 
+ //						|| eItem.type == Types.AUDIO 
+@@ -203,7 +225,7 @@ public class CalligraphyDB {
+ 		Cursor cursor = db.query(
+ 				WORD_TABLE
+ 				,new String[] { "template_id","itemid","op_type","op_pos","charType"
+-				,"matrix","uri","charBitmap","flipdstx"}
++				,"matrix","uri","charBitmap","flipdstx","mindid","mindparentid"}
+ 				, "pagenum = ? and available_id = ?"
+ 				, new String[]{Start.getPageNum()+"",available_id + ""}, null, null, null);
+ 		int template_id = 0;
+@@ -220,6 +242,13 @@ public class CalligraphyDB {
+ 				+ " pagenum:" + pagenum);
+ 		int count = 0;
+ 		int imageCount = 0;
++		
++		MindMapItem mapItem = null;
++		int preMindItemid = -1;
++		int mindid = 0;
++		int mindparentid = 0;
++		HashMap<Integer, MindMapItem> mindMapHash = new HashMap<Integer, MindMapItem>();
++		
+ 		for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext()){
+ 			template_id = cursor.getInt(cursor.getColumnIndex("template_id"));
+ 			itemid = cursor.getInt(cursor.getColumnIndex("itemid"));
+@@ -334,8 +363,44 @@ public class CalligraphyDB {
+ 				}
+ 			}
+ 			
++			
++			
++			if(op_type == OP_ADD_MIND_WORD){
++				mindid = cursor.getInt(cursor.getColumnIndex("mindid"));
++				mindparentid = cursor.getInt(cursor.getColumnIndex("mindparentid"));
++				if(!mindMapHash.containsKey(mindid)){
++					//该id节点尚未出现，初始化,判断是否有父节点
++					if(mindparentid == -1){
++						mapItem = new MindMapItem();
++						LogUtil.getInstance().e("mindmap", "init root item mindid:" + mapItem.getMindID());
++					}else{
++						if(mindMapHash.containsKey(mindparentid)){
++							
++							LogUtil.getInstance().e("mindmap", "init item mindid:" + mapItem.getMindID() + " contains mindparentid:" + mindparentid);
++							
++							mapItem = mindMapHash.get(mindparentid).createNewChild();
++							
++						}else{
++							LogUtil.getInstance().e("mindmap", "init error !!!!!!!!!!!!!mindid:" + mindid + " parentid:" + mindparentid);
++						}
++					}
++					mindMapHash.put(mindid, mapItem);
++					LogUtil.getInstance().e("mindmap", "hash map put" + mindid);
++				}else{
++					mapItem = mindMapHash.get(mindid);
++				}
++				mapItem.addNewWord(item);
++			}else{
++				mindMapHash.clear();
++			}
++			
++			
++			
++			
++			
+ 			//按照操作类型，操作位置，初始化charList
+ 			switch (op_type) {
++			case OP_ADD_MIND_WORD:
+ 			case 1:
+ 				//add char word
+ //				Log.v("getCharList", "file: a" +available_id + "i" + itemid
+@@ -408,6 +473,21 @@ public class CalligraphyDB {
+ 				return flag;
+ 	}
+ 	
++public boolean updateMindmapItem(int page,int aid,int itemid,EditableCalligraphyItem item){
++		
++		ContentValues initalValues = new ContentValues();
++		initalValues.put("op_type", OP_ADD_MIND_WORD);
++		initalValues.put("mindid", item.getMindMapItem().getMindID());
++		initalValues.put("mindparentid", item.getMindMapItem().getParentID());
++		
++		boolean flag = this.db.update(WORD_TABLE, initalValues, "pagenum = ? and available_id = ? and itemid = ?",
++				new String[] { ""+page,""+aid,""+itemid }) > 0;
++				Log.e("update", "pagenum = " + page 
++						+ "available_id"  + aid + " itemid" + itemid + "result:" + flag);
++				return flag;
++	}
++	
++	
+ 	public boolean updatePictrueItem(int page,int aid,int itemid,EditableCalligraphyItem item){
+ 		
+ 		ContentValues initalValues = new ContentValues();
+diff --git a/src/com/jinke/mindmap/DrawFoldLine.java b/src/com/jinke/mindmap/DrawFoldLine.java
+new file mode 100644
+index 0000000..ded6a43
+--- /dev/null
++++ b/src/com/jinke/mindmap/DrawFoldLine.java
+@@ -0,0 +1,16 @@
++package com.jinke.mindmap;
++
++import android.graphics.Canvas;
++import android.graphics.Paint;
++
++public class DrawFoldLine implements DrawLine{
++
++	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
++		// TODO Auto-generated method stub
++		float middle = (from.x+to.x)/2;
++		c.drawLine(from.x, from.y, middle, from.y, mp);
++		c.drawLine(middle, from.y, middle, to.y, mp);
++		c.drawLine(middle, to.y, to.x, to.y, mp);
++	}
++	
++}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/DrawLine.java b/src/com/jinke/mindmap/DrawLine.java
+new file mode 100644
+index 0000000..c5262d7
+--- /dev/null
++++ b/src/com/jinke/mindmap/DrawLine.java
+@@ -0,0 +1,8 @@
++package com.jinke.mindmap;
++
++import android.graphics.Canvas;
++import android.graphics.Paint;
++
++public interface DrawLine {
++   public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp);
++}
+diff --git a/src/com/jinke/mindmap/DrawOperate.java b/src/com/jinke/mindmap/DrawOperate.java
+new file mode 100644
+index 0000000..83e0fdf
+--- /dev/null
++++ b/src/com/jinke/mindmap/DrawOperate.java
+@@ -0,0 +1,14 @@
++package com.jinke.mindmap;
++
++import android.graphics.Canvas;
++import android.graphics.Paint;
++
++public class DrawOperate {
++   private DrawLine drawline;;
++   public DrawOperate(DrawLine mdrawline){
++       this.drawline = mdrawline;
++   }
++   public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp){
++       this.drawline.operate(from, to,  c, mp);
++   }
++}
+diff --git a/src/com/jinke/mindmap/DrawOvalFoldLine.java b/src/com/jinke/mindmap/DrawOvalFoldLine.java
+new file mode 100644
+index 0000000..a230609
+--- /dev/null
++++ b/src/com/jinke/mindmap/DrawOvalFoldLine.java
+@@ -0,0 +1,46 @@
++
++package com.jinke.mindmap;
++
++import com.jinke.calligraphy.app.branch.BaseBitmap;
++import com.jinke.calligraphy.app.branch.EditableCalligraphy;
++
++import android.graphics.Canvas;
++import android.graphics.Paint;
++import android.graphics.RectF;
++
++public class DrawOvalFoldLine implements DrawLine{
++
++	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
++		// TODO Auto-generated method stub
++		float ovallength = 15;
++		LocateDot ovalf_l = new LocateDot();
++		LocateDot ovalf_r = new LocateDot();
++		
++		
++		if( from.y == to.y ){
++			c.drawLine(from.x, from.y,to.x,to.y,mp);
++		}
++		else{
++			if(from.y>to.y){
++				ovalf_l.setLocateDot((from.x+to.x)/2, to.y+ovallength);
++				ovalf_r.setLocateDot((from.x+to.x)/2+ovallength, to.y);
++				c.drawLine(from.x,    from.y,    ovalf_l.x, from.y,   mp);
++				c.drawLine(ovalf_l.x, from.y,    ovalf_l.x, ovalf_l.y,mp);
++				c.drawLine(ovalf_r.x, ovalf_r.y, to.x,      to.y,     mp);
++			    RectF ovalf = new RectF(ovalf_l.x,ovalf_r.y,2*ovalf_r.x-ovalf_l.x,2*ovalf_l.y-ovalf_r.y);
++				c.drawArc(ovalf, 180, 90, false, mp);
++			}
++			else{
++				ovalf_l.setLocateDot((from.x+to.x)/2, to.y-ovallength);
++				ovalf_r.setLocateDot((from.x+to.x)/2+ovallength, to.y);
++				c.drawLine(from.x,    from.y,    ovalf_l.x, from.y,   mp);
++				c.drawLine(ovalf_l.x, from.y,    ovalf_l.x, ovalf_l.y,mp);
++				c.drawLine(ovalf_r.x, ovalf_r.y, to.x,      to.y,     mp);
++			    RectF ovalf = new RectF(ovalf_l.x,2*ovalf_l.y-ovalf_r.y,2*ovalf_r.x-ovalf_l.x,ovalf_r.y);
++				c.drawArc(ovalf, 90, 90, false, mp);
++			}
++		}
++		
++	}
++	
++}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/DrawOvalLine.java b/src/com/jinke/mindmap/DrawOvalLine.java
+new file mode 100644
+index 0000000..c98a546
+--- /dev/null
++++ b/src/com/jinke/mindmap/DrawOvalLine.java
+@@ -0,0 +1,33 @@
++package com.jinke.mindmap;
++
++import android.graphics.Canvas;
++import android.graphics.Paint;
++import android.graphics.RectF;
++
++public class DrawOvalLine implements DrawLine{
++
++	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
++		// TODO Auto-generated method stub
++		if(from.y == to.y){
++			c.drawLine(from.x, from.y,to.x,to.y,mp);
++		}
++		else{
++			LocateDot middle = new LocateDot();
++			middle.setLocateDot((from.x+to.x)/2,(from.y+to.y)/2);
++			if(from.y>to.y){
++				 RectF ovalf1 = new RectF(2*from.x-middle.x,2*middle.y-from.y,middle.x,from.y);
++				 c.drawArc(ovalf1, 0, 90, false, mp);
++				 RectF ovalf2 = new RectF(middle.x,to.y, 2*to.x-middle.x,2*middle.y-to.y);
++				 c.drawArc(ovalf2, 180, 90, false, mp);
++			}
++			else{
++				 RectF ovalf1 = new RectF(2*from.x-middle.x,from.y,middle.x,2*middle.y-from.y);
++				 c.drawArc(ovalf1, 270, 90, false, mp);
++				 RectF ovalf2 = new RectF(middle.x,2*middle.y-to.y, 2*to.x-middle.x,to.y);
++				 c.drawArc(ovalf2, 90, 90, false, mp);
++			}
++		}
++		
++	}
++	
++}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/DrawStraightLine.java b/src/com/jinke/mindmap/DrawStraightLine.java
+new file mode 100644
+index 0000000..5948906
+--- /dev/null
++++ b/src/com/jinke/mindmap/DrawStraightLine.java
+@@ -0,0 +1,13 @@
++package com.jinke.mindmap;
++
++import android.graphics.Canvas;
++import android.graphics.Paint;
++
++public class DrawStraightLine implements DrawLine{
++
++	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
++		// TODO Auto-generated method stub
++		c.drawLine(from.x, from.y,to.x,to.y,mp);
++	}
++	
++}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/LocateDot.java b/src/com/jinke/mindmap/LocateDot.java
+index 582a1af..0f33345 100644
+--- a/src/com/jinke/mindmap/LocateDot.java
++++ b/src/com/jinke/mindmap/LocateDot.java
+@@ -7,7 +7,7 @@ public class LocateDot{
+ 		x=-1;
+ 		y=-1;
+ 	}
+-	public void setLocateDot(int xx,int yy){
++	public void setLocateDot(float xx,float yy){
+ 		this.x=xx;
+ 		this.y=yy;
+ 	}
+diff --git a/src/com/jinke/mindmap/MindMapItem.java b/src/com/jinke/mindmap/MindMapItem.java
+index 112fd3e..0590946 100644
+--- a/src/com/jinke/mindmap/MindMapItem.java
++++ b/src/com/jinke/mindmap/MindMapItem.java
+@@ -12,15 +12,29 @@ public class MindMapItem {
+ 	private List<EditableCalligraphyItem> charList;
+ 	private int level;
+ 	private int buttom = -1;
+-	private int id;
++	private int pos;
++	private static int minditemcount = 0;
++	private int mindid = 0;
++	private int parentid = -1;
+ 	
+     public LocateDot indot;
+ 	public LocateDot outdot;
+ 
+-	
++	public int getMindID(){
++		return mindid;
++	}
++	public int getParentID(){
++		return parentid;
++	}
+ 	public MindMapItem(){
+ 		parent = null;
+ 		level = 0;
++		
++		minditemcount = 0;//新建导图，计数归0
++		mindid = minditemcount++;
++		parentid = -1;//新建导图，没有父节点
++		LogUtil.getInstance().e("mindid", "new mindmap mindid:" + mindid + " parentid:" + parentid);
++		
+ 		charList = new ArrayList<EditableCalligraphyItem>();
+ 		indot = new LocateDot();
+ 		outdot = new LocateDot();
+@@ -28,6 +42,11 @@ public class MindMapItem {
+ 	public MindMapItem(MindMapItem parent){
+ 		this.parent = parent;
+ 		this.level = parent.getLevel() + 1;
++		
++		mindid = minditemcount++;
++		parentid = parent.getMindID();
++		LogUtil.getInstance().e("mindid", "new minditem mindid:" + mindid + " parentid:" + parentid);
++		
+ 		charList = new ArrayList<EditableCalligraphyItem>();
+ 		indot = new LocateDot();
+ 		outdot = new LocateDot();
+@@ -46,17 +65,17 @@ public class MindMapItem {
+ 		return childList;
+ 	}
+ 	public void setChildID(int id){
+-		this.id = id;
++		this.pos = id;
+ 	}
+ 	public int getbrotherButtom(){
+ 		if(this.parent == null){
+ 			return -1;
+ 		}
+ 		
+-		if(id >= 1 && id < parent.childList.size()){
+-			return this.parent.childList.get(id-1).getButtom();
++		if(pos >= 1 && pos < parent.childList.size()){
++			return this.parent.childList.get(pos-1).getButtom();
+ 		}
+-		if(id == 0){
++		if(pos == 0){
+ 			return this.parent.getbrotherButtom();
+ 		}
+ 		return -1;
+@@ -87,14 +106,14 @@ public class MindMapItem {
+ 	}
+ 	public void setButtom(int buttom){
+ 		this.buttom = buttom;
+-		LogUtil.getInstance().e("mindmap", id + " setButtom " + buttom);
++		LogUtil.getInstance().e("mindmap", pos + " setButtom " + buttom);
+ 	}
+ 	public int getButtom(){
+ 		if(childList!=null && childList.size() != 0){
+ 			if(buttom < childList.get(childList.size() -1).getButtom())
+ 				return childList.get(childList.size() -1).getButtom();
+ 		}
+-		LogUtil.getInstance().e("mindmap", id + " getButtom " + buttom);
++		LogUtil.getInstance().e("mindmap", pos + " getButtom " + buttom);
+ 		return buttom;
+ 	}
+ 	/**
+-- 
+1.7.4.1
+

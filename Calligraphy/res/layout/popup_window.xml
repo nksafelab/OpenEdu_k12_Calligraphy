@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="550px"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:gravity="center_horizontal"
+  android:background="#d3d3d3">
+  
+			<GridView
+				android:id="@+id/gridView"
+				android:layout_width="fill_parent"
+				android:layout_height="750px"
+				android:columnWidth="100px"
+				android:numColumns="1"
+				android:horizontalSpacing="10dp"
+				android:verticalSpacing="10dp"
+				android:stretchMode="columnWidth"
+				android:gravity="center"
+			></GridView>
+			
+			<Button
+				android:id="@+id/cancelBtn" 
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:text = "取消"
+				android:layout_margin="10dip" />
+   
+</LinearLayout>

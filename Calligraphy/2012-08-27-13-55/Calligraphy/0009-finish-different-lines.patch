@@ -1,0 +1,618 @@
+From 446a67a8a289e36b60b71a4741cb67a0b56fe0e0 Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Mon, 27 Aug 2012 13:54:41 +0800
+Subject: [PATCH 9/9] finish different lines
+
+---
+ AndroidManifest.xml                                |    2 +-
+ .../calligraphy/app/branch/CalliPointsImpl.java    |   12 +-
+ .../jinke/calligraphy/app/branch/Calligraph.java   |    8 +
+ .../app/branch/EditableCalligraphy.java            |  135 +++++++++++++++-----
+ .../calligraphy/app/branch/HardPointsImpl.java     |   14 ++-
+ src/com/jinke/calligraphy/app/branch/Start.java    |   14 +-
+ .../jinke/calligraphy/touchmode/HandWriteMode.java |    2 +
+ src/com/jinke/mindmap/DrawFoldLine.java            |   16 ---
+ src/com/jinke/mindmap/DrawLine.java                |    2 +-
+ src/com/jinke/mindmap/DrawOperate.java             |   14 --
+ src/com/jinke/mindmap/DrawOvalFoldLine.java        |   46 -------
+ src/com/jinke/mindmap/DrawOvalLine.java            |   33 -----
+ src/com/jinke/mindmap/DrawStraightLine.java        |   13 --
+ src/com/jinke/mindmap/LocateDot.java               |    5 +
+ src/com/jinke/mindmap/MindMapItem.java             |   15 ++
+ 15 files changed, 165 insertions(+), 166 deletions(-)
+ delete mode 100644 src/com/jinke/mindmap/DrawFoldLine.java
+ delete mode 100644 src/com/jinke/mindmap/DrawOperate.java
+ delete mode 100644 src/com/jinke/mindmap/DrawOvalFoldLine.java
+ delete mode 100644 src/com/jinke/mindmap/DrawOvalLine.java
+ delete mode 100644 src/com/jinke/mindmap/DrawStraightLine.java
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index b7d815b..8db9bb1 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -1,6 +1,6 @@
+ <?xml version='1.0' encoding='utf-8'?>
+ <manifest package="com.jinke.calligraphy.app.branch" android:versionCode="81" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.000.201206271339">
+-    <uses-sdk android:minSdkVersion="11"/>
++    <uses-sdk android:minSdkVersion="10"/>
+     <application android:icon="@drawable/ccnote" android:label="@string/app_name"
+         >
+         <activity android:name=".Start" 
+diff --git a/src/com/jinke/calligraphy/app/branch/CalliPointsImpl.java b/src/com/jinke/calligraphy/app/branch/CalliPointsImpl.java
+index 5d9708b..aeb1359 100644
+--- a/src/com/jinke/calligraphy/app/branch/CalliPointsImpl.java
++++ b/src/com/jinke/calligraphy/app/branch/CalliPointsImpl.java
+@@ -100,16 +100,15 @@ public class CalliPointsImpl extends BasePointsImpl {
+     	resetBound();
+     }
+     
+-    
++    int count = 0;
+     @Override
+ 	public void start(float x, float y) {
+ 		// TODO Auto-generated method stub
+     	super.start(x, y);
++    	count = 0;
+     	Log.i(TAG, "start");
+     	if(TIMER == false){
+         	mTimer.start();
+-        	
+-        	
+         	TIMER = true;
+     	}
+     	
+@@ -367,7 +366,12 @@ public class CalliPointsImpl extends BasePointsImpl {
+ 			bCanvas.drawPath(mPath, mPathPaint);
+ //			mPath.reset();
+ 		}
+-		bView.invalidate();
++		
++		
++		if(count %3 == 0)
++			bView.invalidate();
++		if(++count > Integer.MAX_VALUE)
++			count = 0;
+         return true;
+ 	}
+ 
+diff --git a/src/com/jinke/calligraphy/app/branch/Calligraph.java b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+index 644c537..4c26fe9 100755
+--- a/src/com/jinke/calligraphy/app/branch/Calligraph.java
++++ b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+@@ -817,6 +817,14 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 				}
+ 			}
+ 			if(v == mHandwriteNewBtn) {
++				if(view.getTouchMode() instanceof HandWriteMode){
++					if(((HandWriteMode)view.getTouchMode()).isMindMapEditableStatus()){
++						((HandWriteMode)view.getTouchMode()).setMindMapEditStatusFalse();
++						view.cursorBitmap.insertEndOfLine();
++						Start.status.modified("insert EndofLine");
++					}
++				}
++				
+ 				addNewPage();
+ 				
+ 			}
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index 8f31d8a..e99769e 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -2,6 +2,7 @@ package com.jinke.calligraphy.app.branch;
+ 
+ import hallelujah.cal.CalligraphyVectorUtil;
+ 
++
+ import java.util.Calendar;
+ import java.util.LinkedList;
+ import java.util.List;
+@@ -31,12 +32,14 @@ import com.jinke.calligraphy.database.CalligraphyDB;
+ import com.jinke.calligraphy.template.Available;
+ import com.jinke.calligraphy.template.WolfTemplateUtil;
+ import com.jinke.calligraphy.touchmode.HandWriteMode;
+-import com.jinke.mindmap.DrawFoldLine;
+-import com.jinke.mindmap.DrawOperate;
+-import com.jinke.mindmap.DrawOvalFoldLine;
+-import com.jinke.mindmap.DrawOvalLine;
+-import com.jinke.mindmap.DrawStraightLine;
++import com.jinke.mindmap.DrawLineOperate;
++import com.jinke.mindmap.DrawOutLineHalfLeft;
++import com.jinke.mindmap.DrawOutLineHalfRight;
++import com.jinke.mindmap.DrawOutLineHalfRound;
++import com.jinke.mindmap.DrawOutLineOperate;
++import com.jinke.mindmap.LineStyle;
+ import com.jinke.mindmap.MindMapItem;
++import com.jinke.mindmap.OutLineStyle;
+ import com.jinke.mywidget.FlipImageView;
+ import com.jinke.single.BitmapCount;
+ import com.jinke.single.BitmapUtils;
+@@ -1246,6 +1249,7 @@ public class EditableCalligraphy implements Command{
+ 		}
+ 	}
+ 	int maxX = 0;
++	int ERROR_DST_Y = 10;//行距
+ 	public void updateMindMap(MindMapItem mapItem,Paint p,int preX){
+ 		
+ //		y = mindMapBeginY +  mapItem.getMarginTop()*available.getAlinespace();
+@@ -1263,12 +1267,12 @@ public class EditableCalligraphy implements Command{
+ 		//minditem类中添加LocatDot类记录每个节点的画线的出发点和接>    入点
+ 		//行距available.getAlinespace()
+ 		//在画该节点的第一个字之前记录这个节点画线的接入点//
+-		
+ 		if(flip_dst < BaseBitmap.TITLE_HEIGHT){
+-			mapItem.indot.setLocateDot(x, y+available.getAlinespace()/2);
++			mapItem.indot.setLocateDot(x, y+ ERROR_DST_Y);
+ 		}else{
+-			mapItem.indot.setLocateDot(x, y+available.getAlinespace()/2 - flip_dst + BaseBitmap.TITLE_HEIGHT);
++			mapItem.indot.setLocateDot(x, y + ERROR_DST_Y - flip_dst + BaseBitmap.TITLE_HEIGHT);
+ 		}
++		
+ 		for(l=0;l<mapItem.getCharList().size();l++){
+ 			e = mapItem.getCharList().get(l);
+ 			float mappad = (CursorDrawBitmap.mIntervalHeight  - e.getHeight())  /1.2f;
+@@ -1281,8 +1285,8 @@ public class EditableCalligraphy implements Command{
+ 			}
+ 			tmp = e.getCharBitmap();
+ 			c.drawBitmap(tmp, mm, p);
+-			mm.postTranslate(0, tmp.getHeight());
+-			c.drawBitmap(Start.BUTTOM_LINE_BITMAP, mm, p);
++//			mm.postTranslate(0, tmp.getHeight());
++//			c.drawBitmap(Start.BUTTOM_LINE_BITMAP, mm, p);
+ 			
+ 			e.setCurPos(x, y);
+ 			
+@@ -1292,9 +1296,9 @@ public class EditableCalligraphy implements Command{
+ 		}
+ 		//画完了这个节点的时候记录这个节点画线的出发点
+ 		if(flip_dst < BaseBitmap.TITLE_HEIGHT){
+-			mapItem.outdot.setLocateDot(x, y+available.getAlinespace()/2);
++			mapItem.outdot.setLocateDot(x, y+available.getAlinespace());
+ 		}else{
+-			mapItem.outdot.setLocateDot(x, y+available.getAlinespace()/2- flip_dst + BaseBitmap.TITLE_HEIGHT);
++			mapItem.outdot.setLocateDot(x, y+available.getAlinespace()- flip_dst + BaseBitmap.TITLE_HEIGHT);
+ 		}
+ 		
+ 		mapItem.setButtom(y+available.getAlinespace());
+@@ -1312,24 +1316,97 @@ public class EditableCalligraphy implements Command{
+ 				updateMindMap(tempItem, p,preX);
+ 			}
+ 		}
+-		//在计算了这个节点的所有子节点的出发点和接入点后画线（仅对本节点的一级节点）
+-			 Paint mp = new Paint();
+-			 mp.setColor(0xff87CEFA);
+-			 mp.setStyle(Style.STROKE);
+-			 mp.setStrokeWidth(4);
+-			 DrawOperate drawOperate = null;
+-//			 drawOperate = new DrawOperate(new DrawStraightLine());
+-//             drawOperate = new DrawOperate(new DrawFoldLine());
+-//             drawOperate = new DrawOperate(new DrawOvalLine());
+-             drawOperate = new DrawOperate(new DrawOvalFoldLine());
+-             if(mapItem.getChildList() != null && mapItem.getChildList().size()!=
+-0){
+-                     for(int j=0;j<mapItem.getChildList().size();j++){
+-                             drawOperate.operate(mapItem.outdot,
+-mapItem.getChildList().get(j).indot, c, mp);
+-}
++		
++		//在计算了这个节点的所有子节点的出发点和接入点后画线（仅对本节点的一级节点）//连接线
++		//连接线使用的画笔
++		Paint mp = new Paint();
++		mp.setColor(0x804169e1);
++		//87CEFA
++		mp.setStrokeWidth(2);
++		mp.setStyle(Style.STROKE);
++		
++		//连接线操作函数
++		DrawLineOperate drawOperate = null;
++		drawOperate = new DrawLineOperate(50,1);//50是列宽，1是缩放比例
++		//连接线类型
++		LineStyle my_line_style ;
++		my_line_style =LineStyle.STRAIGHT_LINE;
++		my_line_style =LineStyle.STRAIGHT_FOLD_LINE;
++		my_line_style =LineStyle.OVAL_LINE;
++		my_line_style =LineStyle.OVAL_FOLD_LINE_HALF;
++		my_line_style =LineStyle.OVAL_FOLD_LINE_BRACKET;
++		//设置线类型
++		drawOperate.setLineStyle(my_line_style);
++		
++		float vertical_offset = 0.5f;
++		//节点框使用的填充画笔
++		Paint rp = new Paint();
++		rp.setColor(0x2087CEFA);
++		rp.setStyle(Style.FILL);
++		//节点框使用的操作函数
++		DrawOutLineOperate drawOutOperate = null;
++		drawOutOperate =  new DrawOutLineOperate(rp,mp,1);//填充画笔，画线画笔，1是缩放比例
++		drawOutOperate.setOutLineStyle(OutLineStyle.OVAL_STROKE_AND_FILL_BOX);
++
++		OutLineStyle my_out_line_style ;//框类型
++		my_out_line_style =OutLineStyle.STRAIGHT_STROKE_HALF_BOX;//直线半框无填充
++		my_out_line_style =OutLineStyle.STRAIGHT_STROKE_BOX;//直线框无填充
++		my_out_line_style =OutLineStyle.STRAIGHT_FILL_BOX;//只有填充
++		my_out_line_style =OutLineStyle.STRAIGHT_STROKE_AND_FILL_BOX;//直线框有填充
++		my_out_line_style =OutLineStyle.OVAL_STROKE_BOX;//弧线框无填充
++		my_out_line_style =OutLineStyle.OVAL_FILL_BOX;//只有填充
++		my_out_line_style =OutLineStyle.OVAL_STROKE_AND_FILL_BOX;//弧线框有填充
++		my_out_line_style =OutLineStyle.OVAL_STROKE_HALF_BOX;//弧线半框无填充
++		//设置框类型
++		switch(my_out_line_style){
++		case STRAIGHT_STROKE_HALF_BOX://画半框的直线线
++			vertical_offset=0.7f;
++	        if( mapItem.getMindID() == 0 ){
++	        	drawOutOperate.setOutLineStyle(OutLineStyle.STRAIGHT_STROKE_HALF_BOX_RIGHT);
++	        }
++	        else{
++	        	if(mapItem.hasChild()){
++	       		 drawOutOperate.setOutLineStyle(OutLineStyle.STRAIGHT_STROKE_HALF_BOX_LEFT_AND_RIGHT);
++	            }
++	            else{
++	           	 drawOutOperate.setOutLineStyle(OutLineStyle.STRAIGHT_STROKE_HALF_BOX_LEFT);
++	            }
++	        }
++			break;
++		case OVAL_STROKE_HALF_BOX://画半框的弧线
++			vertical_offset=0.7f;
++	        if( mapItem.getMindID() == 0 ){
++	        	drawOutOperate.setOutLineStyle(OutLineStyle.OVAL_STROKE_HALF_BOX_RIGHT);
++	        }
++	        else{
++	        	if(mapItem.hasChild()){
++	       		 drawOutOperate.setOutLineStyle(OutLineStyle.OVAL_STROKE_HALF_BOX_LEFT_AND_RIGHT);
++	            }
++	            else{
++	           	 drawOutOperate.setOutLineStyle(OutLineStyle.OVAL_STROKE_HALF_BOX_LEFT);
++	            }
++	        }
++			break;
++		default:
++			vertical_offset=0.5f;
++			drawOutOperate.setOutLineStyle(my_out_line_style);
++			break;
++		}
++
++        //画框
++        drawOutOperate.operate(mapItem.indot, mapItem.outdot, c, mp);
++        
++        if(mapItem.getChildList() != null && mapItem.getChildList().size()!=0){
++        	 LogUtil.getInstance().e("child", "childList null:" + (mapItem.getChildList() == null) + " size:"
++        			 + mapItem.getChildList().size());
++        	 //画线
++        	 for(int j=0;j<mapItem.getChildList().size();j++){
++                	 drawOperate.operate(mapItem.getFromDot(vertical_offset),mapItem.getChildList().get(j).getToDot(vertical_offset), c, mp);
+              }
++        }
++        
+ 		return;
++		
+ 	}
+ 	
+ 	public void update_vertical(Bitmap m,Matrix matrix)
+@@ -3150,10 +3227,8 @@ mapItem.getChildList().get(j).indot, c, mp);
+ 				if(item.type == Types.CharsWithStroke){
+ 					Log.e("mindmap", "add new word " + i);
+ 					map.addNewWord(item);
+-					
+ 					//update databases
+ 					CalligraphyDB.getInstance(Start.context).updateMindmapItem(Start.getPageNum(), 3, item.getItemID(), item);
+-					
+ 				}
+ 			}//end for
+ 			setCurrentMindMapItem(map);
+diff --git a/src/com/jinke/calligraphy/app/branch/HardPointsImpl.java b/src/com/jinke/calligraphy/app/branch/HardPointsImpl.java
+index 77fa7ec..f107a43 100644
+--- a/src/com/jinke/calligraphy/app/branch/HardPointsImpl.java
++++ b/src/com/jinke/calligraphy/app/branch/HardPointsImpl.java
+@@ -1,5 +1,7 @@
+ package com.jinke.calligraphy.app.branch;
+ 
++import com.jinke.single.LogUtil;
++
+ import android.graphics.Bitmap;
+ import android.graphics.BitmapFactory;
+ import android.graphics.Canvas;
+@@ -87,7 +89,7 @@ public class HardPointsImpl extends BasePointsImpl {
+ 	public void start(float x, float y) {
+ 		// TODO Auto-generated method stub
+ 		super.start(x, y);
+-		
++		tempCount = 0;
+ 		if(MyView.drawStatus == MyView.STATUS_DRAW_FREE)
+ 			mCanvas.setBitmap(mCurInfo.mBitmap);
+ 		else {
+@@ -158,13 +160,21 @@ public class HardPointsImpl extends BasePointsImpl {
+ //        }else if(tempCount == Start.limit_num){
+ //        	tempCount = 0;
+ //    		Log.e("invalidate", "touch move,reset tempCount = " + tempCount + " invalidate!");
++        //四核优化
++//        if(tempCount % 4 == 0){
+     		bView.invalidate();
+ //        }
++//        tempCount ++;
++//        if(tempCount > Integer.MAX_VALUE)
++//			tempCount = 0;
++        
++        
++//        }
+         
+ 		return true;
+ //		bView.draw();
+ 	}
+-
++	int tempCount = 0;
+ 	@Override
+ 	public boolean after() {
+ 		// TODO Auto-generated method stub
+diff --git a/src/com/jinke/calligraphy/app/branch/Start.java b/src/com/jinke/calligraphy/app/branch/Start.java
+index cb8d3ea..727aa09 100644
+--- a/src/com/jinke/calligraphy/app/branch/Start.java
++++ b/src/com/jinke/calligraphy/app/branch/Start.java
+@@ -92,7 +92,7 @@ public class Start extends Activity{
+ 	public static EditStatus status;
+ 	public static Bitmap OOM_BITMAP;
+ 	public static Bitmap EMPTY_BITMAP;
+-	public static Bitmap BUTTOM_LINE_BITMAP;
++//	public static Bitmap BUTTOM_LINE_BITMAP;
+ 	public static Bitmap RED_ARROW_BITMAP;
+ 	public static Bitmap BLACK_ARROW_BITMAP;
+ 	
+@@ -550,8 +550,8 @@ public class Start extends Activity{
+ 		super.onCreate(savedInstanceState);
+ 		Log.e("Start", "!!!!!!!!!!!!!onCreate");
+ 		
+-		getWindow().getDecorView().setSystemUiVisibility
+-		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
++//		getWindow().getDecorView().setSystemUiVisibility
++//		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
+ 		
+ 		inkSpreadDialog = new InkSpreadDialog(this);
+ 		//start thread to sync Databases and file dir
+@@ -596,7 +596,7 @@ public class Start extends Activity{
+ 		
+ 		OOM_BITMAP = readBitMap(context, R.drawable.oom);
+ 		EMPTY_BITMAP = readBitMap(context, R.drawable.empty_word);
+-		BUTTOM_LINE_BITMAP = readBitMap(context, R.drawable.buttomline);
++//		BUTTOM_LINE_BITMAP = readBitMap(context, R.drawable.buttomline);
+ 		RED_ARROW_BITMAP = readBitMap(context, R.drawable.red_jiantou);
+ 		BLACK_ARROW_BITMAP = readBitMap(context, R.drawable.black_jiantou);
+ 		
+@@ -1151,8 +1151,10 @@ public class Start extends Activity{
+ 		// TODO Auto-generated method stub
+ 		Log.e("Start", "!!!!!!!!!!!!!resume");
+ 		super.onResume();
+-		getWindow().getDecorView().setSystemUiVisibility
+-		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
++//		getWindow().getDecorView().setSystemUiVisibility
++//		  (View.SYSTEM_UI_FLAG_LOW_PROFILE);
++		
++		
+ //		LoginInfo = getSharedPreferences("LoginInfo", MODE_WORLD_WRITEABLE);
+ //		Boolean isUpdate = LoginInfo.getBoolean("update", false);
+ //		LoginInfo.edit().putBoolean("update", false);
+diff --git a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+index cc56e0e..e6a101a 100644
+--- a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
++++ b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+@@ -242,6 +242,8 @@ public class HandWriteMode implements TouchMode{
+ 		// TODO Auto-generated method stub
+ 		MindMapItem item = mindItem.getMindMapItem().createNewChild();
+ 		//改变当前编辑节点
++		view.cursorBitmap.cal_current = 
++			view.cursorBitmap.listEditableCalligraphy.get(3);
+ 		if(view.cursorBitmap.cal_current.getID() == 3){
+ 			view.cursorBitmap.cal_current.setCurrentMindMapItem(item);
+ 		}
+diff --git a/src/com/jinke/mindmap/DrawFoldLine.java b/src/com/jinke/mindmap/DrawFoldLine.java
+deleted file mode 100644
+index ded6a43..0000000
+--- a/src/com/jinke/mindmap/DrawFoldLine.java
++++ /dev/null
+@@ -1,16 +0,0 @@
+-package com.jinke.mindmap;
+-
+-import android.graphics.Canvas;
+-import android.graphics.Paint;
+-
+-public class DrawFoldLine implements DrawLine{
+-
+-	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
+-		// TODO Auto-generated method stub
+-		float middle = (from.x+to.x)/2;
+-		c.drawLine(from.x, from.y, middle, from.y, mp);
+-		c.drawLine(middle, from.y, middle, to.y, mp);
+-		c.drawLine(middle, to.y, to.x, to.y, mp);
+-	}
+-	
+-}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/DrawLine.java b/src/com/jinke/mindmap/DrawLine.java
+index c5262d7..a497800 100644
+--- a/src/com/jinke/mindmap/DrawLine.java
++++ b/src/com/jinke/mindmap/DrawLine.java
+@@ -4,5 +4,5 @@ import android.graphics.Canvas;
+ import android.graphics.Paint;
+ 
+ public interface DrawLine {
+-   public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp);
++   public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp,float arrawWidth);
+ }
+diff --git a/src/com/jinke/mindmap/DrawOperate.java b/src/com/jinke/mindmap/DrawOperate.java
+deleted file mode 100644
+index 83e0fdf..0000000
+--- a/src/com/jinke/mindmap/DrawOperate.java
++++ /dev/null
+@@ -1,14 +0,0 @@
+-package com.jinke.mindmap;
+-
+-import android.graphics.Canvas;
+-import android.graphics.Paint;
+-
+-public class DrawOperate {
+-   private DrawLine drawline;;
+-   public DrawOperate(DrawLine mdrawline){
+-       this.drawline = mdrawline;
+-   }
+-   public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp){
+-       this.drawline.operate(from, to,  c, mp);
+-   }
+-}
+diff --git a/src/com/jinke/mindmap/DrawOvalFoldLine.java b/src/com/jinke/mindmap/DrawOvalFoldLine.java
+deleted file mode 100644
+index a230609..0000000
+--- a/src/com/jinke/mindmap/DrawOvalFoldLine.java
++++ /dev/null
+@@ -1,46 +0,0 @@
+-
+-package com.jinke.mindmap;
+-
+-import com.jinke.calligraphy.app.branch.BaseBitmap;
+-import com.jinke.calligraphy.app.branch.EditableCalligraphy;
+-
+-import android.graphics.Canvas;
+-import android.graphics.Paint;
+-import android.graphics.RectF;
+-
+-public class DrawOvalFoldLine implements DrawLine{
+-
+-	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
+-		// TODO Auto-generated method stub
+-		float ovallength = 15;
+-		LocateDot ovalf_l = new LocateDot();
+-		LocateDot ovalf_r = new LocateDot();
+-		
+-		
+-		if( from.y == to.y ){
+-			c.drawLine(from.x, from.y,to.x,to.y,mp);
+-		}
+-		else{
+-			if(from.y>to.y){
+-				ovalf_l.setLocateDot((from.x+to.x)/2, to.y+ovallength);
+-				ovalf_r.setLocateDot((from.x+to.x)/2+ovallength, to.y);
+-				c.drawLine(from.x,    from.y,    ovalf_l.x, from.y,   mp);
+-				c.drawLine(ovalf_l.x, from.y,    ovalf_l.x, ovalf_l.y,mp);
+-				c.drawLine(ovalf_r.x, ovalf_r.y, to.x,      to.y,     mp);
+-			    RectF ovalf = new RectF(ovalf_l.x,ovalf_r.y,2*ovalf_r.x-ovalf_l.x,2*ovalf_l.y-ovalf_r.y);
+-				c.drawArc(ovalf, 180, 90, false, mp);
+-			}
+-			else{
+-				ovalf_l.setLocateDot((from.x+to.x)/2, to.y-ovallength);
+-				ovalf_r.setLocateDot((from.x+to.x)/2+ovallength, to.y);
+-				c.drawLine(from.x,    from.y,    ovalf_l.x, from.y,   mp);
+-				c.drawLine(ovalf_l.x, from.y,    ovalf_l.x, ovalf_l.y,mp);
+-				c.drawLine(ovalf_r.x, ovalf_r.y, to.x,      to.y,     mp);
+-			    RectF ovalf = new RectF(ovalf_l.x,2*ovalf_l.y-ovalf_r.y,2*ovalf_r.x-ovalf_l.x,ovalf_r.y);
+-				c.drawArc(ovalf, 90, 90, false, mp);
+-			}
+-		}
+-		
+-	}
+-	
+-}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/DrawOvalLine.java b/src/com/jinke/mindmap/DrawOvalLine.java
+deleted file mode 100644
+index c98a546..0000000
+--- a/src/com/jinke/mindmap/DrawOvalLine.java
++++ /dev/null
+@@ -1,33 +0,0 @@
+-package com.jinke.mindmap;
+-
+-import android.graphics.Canvas;
+-import android.graphics.Paint;
+-import android.graphics.RectF;
+-
+-public class DrawOvalLine implements DrawLine{
+-
+-	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
+-		// TODO Auto-generated method stub
+-		if(from.y == to.y){
+-			c.drawLine(from.x, from.y,to.x,to.y,mp);
+-		}
+-		else{
+-			LocateDot middle = new LocateDot();
+-			middle.setLocateDot((from.x+to.x)/2,(from.y+to.y)/2);
+-			if(from.y>to.y){
+-				 RectF ovalf1 = new RectF(2*from.x-middle.x,2*middle.y-from.y,middle.x,from.y);
+-				 c.drawArc(ovalf1, 0, 90, false, mp);
+-				 RectF ovalf2 = new RectF(middle.x,to.y, 2*to.x-middle.x,2*middle.y-to.y);
+-				 c.drawArc(ovalf2, 180, 90, false, mp);
+-			}
+-			else{
+-				 RectF ovalf1 = new RectF(2*from.x-middle.x,from.y,middle.x,2*middle.y-from.y);
+-				 c.drawArc(ovalf1, 270, 90, false, mp);
+-				 RectF ovalf2 = new RectF(middle.x,2*middle.y-to.y, 2*to.x-middle.x,to.y);
+-				 c.drawArc(ovalf2, 90, 90, false, mp);
+-			}
+-		}
+-		
+-	}
+-	
+-}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/DrawStraightLine.java b/src/com/jinke/mindmap/DrawStraightLine.java
+deleted file mode 100644
+index 5948906..0000000
+--- a/src/com/jinke/mindmap/DrawStraightLine.java
++++ /dev/null
+@@ -1,13 +0,0 @@
+-package com.jinke.mindmap;
+-
+-import android.graphics.Canvas;
+-import android.graphics.Paint;
+-
+-public class DrawStraightLine implements DrawLine{
+-
+-	public void operate(LocateDot from, LocateDot to, Canvas c, Paint mp) {
+-		// TODO Auto-generated method stub
+-		c.drawLine(from.x, from.y,to.x,to.y,mp);
+-	}
+-	
+-}
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/LocateDot.java b/src/com/jinke/mindmap/LocateDot.java
+index 0f33345..2141511 100644
+--- a/src/com/jinke/mindmap/LocateDot.java
++++ b/src/com/jinke/mindmap/LocateDot.java
+@@ -7,8 +7,13 @@ public class LocateDot{
+ 		x=-1;
+ 		y=-1;
+ 	}
++	public LocateDot(float xx,float yy){
++		this.x=xx;
++		this.y=yy;
++	}
+ 	public void setLocateDot(float xx,float yy){
+ 		this.x=xx;
+ 		this.y=yy;
+ 	}
++	
+ }
+\ No newline at end of file
+diff --git a/src/com/jinke/mindmap/MindMapItem.java b/src/com/jinke/mindmap/MindMapItem.java
+index 0590946..4acd96c 100644
+--- a/src/com/jinke/mindmap/MindMapItem.java
++++ b/src/com/jinke/mindmap/MindMapItem.java
+@@ -20,6 +20,21 @@ public class MindMapItem {
+     public LocateDot indot;
+ 	public LocateDot outdot;
+ 
++	public LocateDot getFromDot(float vop){//设置接入点和发出点位置//vop(0-1)=0.5是居中，越大越往下
++        LocateDot from = new LocateDot(outdot.x,indot.y+Math.abs(indot.y-outdot.y)*vop);
++        return from;
++	}
++	public LocateDot getToDot(float vop){
++	        LocateDot to = new LocateDot(indot.x,indot.y+Math.abs(indot.y-outdot.y)*vop);
++	        return to;
++	}
++	public boolean hasChild(){
++		if(childList == null)
++			return false;
++		if(childList.size() == 0)
++			return false;
++		return true;
++	}
+ 	public int getMindID(){
+ 		return mindid;
+ 	}
+-- 
+1.7.4.1
+

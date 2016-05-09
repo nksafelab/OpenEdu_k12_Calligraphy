@@ -1,0 +1,1847 @@
+From 2bcd3fe6a65a1e5f5ad53bd9ddcd764102fd786c Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Wed, 15 Aug 2012 17:01:55 +0800
+Subject: [PATCH 5/9] finish mindmap update
+
+---
+ AndroidManifest.xml                                |    1 -
+ res/drawable-hdpi/black_jiantou.png                |  Bin 0 -> 2021 bytes
+ res/drawable-hdpi/buttomline.png                   |  Bin 0 -> 354 bytes
+ res/drawable-hdpi/red_jiantou.png                  |  Bin 0 -> 3897 bytes
+ .../jinke/calligraphy/app/branch/Calligraph.java   |    8 +
+ .../calligraphy/app/branch/CursorDrawBitmap.java   |   10 +
+ .../app/branch/EditableCalligraphy.java            |  372 +++++++++++---------
+ .../app/branch/EditableCalligraphyItem.java        |   12 +-
+ .../jinke/calligraphy/database/CalligraphyDB.java  |    4 +-
+ .../jinke/calligraphy/touchmode/HandWriteMode.java |   80 ++++-
+ src/com/jinke/mindmap/ArrowDrawer.java             |   15 +
+ src/com/jinke/mindmap/DownArrowDrawer.java         |   40 ++
+ src/com/jinke/mindmap/LeftArrowDrawer.java         |   40 ++
+ src/com/jinke/mindmap/MathUtil.java                |   65 ++++
+ src/com/jinke/mindmap/MindMapItem.java             |  107 ++++++
+ src/com/jinke/mindmap/RightArrowDrawer.java        |   40 ++
+ src/com/jinke/mindmap/UpArrowDrawer.java           |   40 ++
+ src/com/jinke/pdfcreator/CloudActivity.java        |   81 +++++
+ src/com/jinke/pdfcreator/CloudNote.java            |  223 ++++++++++++
+ src/com/jinke/pdfcreator/ComparatorImg.java        |   16 +
+ src/com/jinke/pdfcreator/Item.java                 |   25 ++
+ src/com/jinke/single/LogUtil.java                  |   36 ++
+ 22 files changed, 1032 insertions(+), 183 deletions(-)
+ create mode 100644 res/drawable-hdpi/black_jiantou.png
+ create mode 100644 res/drawable-hdpi/buttomline.png
+ create mode 100644 res/drawable-hdpi/red_jiantou.png
+ create mode 100644 src/com/jinke/mindmap/ArrowDrawer.java
+ create mode 100644 src/com/jinke/mindmap/DownArrowDrawer.java
+ create mode 100644 src/com/jinke/mindmap/LeftArrowDrawer.java
+ create mode 100644 src/com/jinke/mindmap/MathUtil.java
+ create mode 100644 src/com/jinke/mindmap/MindMapItem.java
+ create mode 100644 src/com/jinke/mindmap/RightArrowDrawer.java
+ create mode 100644 src/com/jinke/mindmap/UpArrowDrawer.java
+ create mode 100644 src/com/jinke/pdfcreator/CloudActivity.java
+ create mode 100644 src/com/jinke/pdfcreator/CloudNote.java
+ create mode 100644 src/com/jinke/pdfcreator/ComparatorImg.java
+ create mode 100644 src/com/jinke/pdfcreator/Item.java
+ create mode 100644 src/com/jinke/single/LogUtil.java
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index 3a5ac23..8db9bb1 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -7,7 +7,6 @@
+             android:configChanges="orientation|keyboardHidden" 
+             android:screenOrientation="portrait" 
+             android:label="@string/app_name"
+-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+             >
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN"/>
+diff --git a/res/drawable-hdpi/black_jiantou.png b/res/drawable-hdpi/black_jiantou.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..d4daa691c489e67c676e9e969d822454f2a3a93d
+GIT binary patch
+literal 2021
+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
+DZ(+5J
+
+literal 0
+HcmV?d00001
+
+diff --git a/res/drawable-hdpi/buttomline.png b/res/drawable-hdpi/buttomline.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b83c7ef4557f4194742db3d59e029e5807bd524f
+GIT binary patch
+literal 354
+zcmeAS@N?(olHy`uVBq!ia0vp^#z4%<!3HE>G+mhmq!^2X+?^QKos)S9<gg`qySp&_
+z2f+n<mrn+Ya29w(7Bet#3xhBt!>l<HKtc8rPhVH|I~?qs)|`F@ne%}{k|nMYCC>S|
+zxv6<249-QVi6yBi3gww484B*6z5(HleBwYwdp%toLo813on+YM<S5`0|D7lP$N`5B
+zbJXIFFjsK*Z@ekz#A9NxW%=m`{fF4N^lG?g&008l)jFfO`c4f@DhdY}{S74SnNL)3
+zzWjQQC1rkQV*A;!)rrS!nl9y8DCtgAJv;fxL@)8&#XI~Z_a!ZptFH^3yKx7rGm9(Z
+zG>^qI_kYlPCH&64V$X7)XIpM(&oppx;68Ej%x0-+U-tdwFIrGC&uZq^rqz>Xd4^Wc
+s@{l^)%9&;M$JhJJy_ux}KfR2~D<)^D2l~tF0zJau>FVdQ&MBb@0ASjH82|tP
+
+literal 0
+HcmV?d00001
+
+diff --git a/res/drawable-hdpi/red_jiantou.png b/res/drawable-hdpi/red_jiantou.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1c2eef3f9148b025fbe0715f1b8ebe8d0c431f79
+GIT binary patch
+literal 3897
+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
+Hu0mjfX!<y>
+
+literal 0
+HcmV?d00001
+
+diff --git a/src/com/jinke/calligraphy/app/branch/Calligraph.java b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+index 73fb209..d0bde7b 100755
+--- a/src/com/jinke/calligraphy/app/branch/Calligraph.java
++++ b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+@@ -62,6 +62,7 @@ import com.jinke.calligraphy.fliplayout.FlipHorizontalLayout;
+ import com.jinke.calligraphy.template.Available;
+ import com.jinke.calligraphy.template.WolfTemplate;
+ import com.jinke.calligraphy.template.WolfTemplateUtil;
++import com.jinke.calligraphy.touchmode.HandWriteMode;
+ import com.jinke.mywidget.FlipButton;
+ import com.jinke.mywidget.FlipImageView;
+ import com.jinke.mywidget.interpolator.EasingType.Type;
+@@ -790,6 +791,8 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 					Start.status.modified("insert EndofLine");
+ 				}
+ 				if(v == mHandWriteUndoBtn){
++					/*
++					 * 暂时改做翰林算子button
+ 					Log.i(TAG, "handwrite new undo");
+ 					int len = undoList.size();
+ 					if(len > 0) {
+@@ -799,6 +802,11 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 						Start.status.modified("undo");
+ 					} else
+ 						Toast.makeText(mContext, "No Need To Undo", Toast.LENGTH_SHORT).show();
++						*/
++					view.cursorBitmap.addNewMindMap();
++					if(view.getTouchMode() instanceof HandWriteMode){
++						((HandWriteMode)view.getTouchMode()).setMindMapEditStatusTrue();
++					}
+ 				}
+ 			}
+ 			if(v == mHandwriteNewBtn) {
+diff --git a/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java b/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java
+index 3ffd65b..dd62286 100644
+--- a/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java
++++ b/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java
+@@ -493,6 +493,16 @@ public void initDate(WolfTemplate wt) {
+     	updateHandwriteStateFlip();
+     }
+     
++    public void addNewMindMap(){
++    	if(cal_current.getID() == 3){
++    		cal_current.addNewMindMapItem();
++    		updateHandwriteStateFlip();
++    	}else{
++    		Toast.makeText(Start.context, "正文区才可以插入翰林算子", Toast.LENGTH_LONG).show();
++    	}
++    	
++    }
++    
+     public void insertEndOfLine(){
+     	endofLine = true;
+     	System.out.println("!!!!!!!!!!!!!!1linenumber:"+cal_current.linenumber);
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index feaf4f7..998ceed 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -21,10 +21,13 @@ import com.jinke.calligraphy.database.CalligraphyDB;
+ import com.jinke.calligraphy.template.Available;
+ import com.jinke.calligraphy.template.WolfTemplateUtil;
+ import com.jinke.calligraphy.touchmode.CursorScaleMode;
++import com.jinke.calligraphy.touchmode.HandWriteMode;
++import com.jinke.mindmap.MindMapItem;
+ import com.jinke.mywidget.FlipImageView;
+ import com.jinke.mywidget.interpolator.EasingType.Type;
+ import com.jinke.single.BitmapCount;
+ import com.jinke.single.BitmapUtils;
++import com.jinke.single.LogUtil;
+ 
+ import android.content.ContentResolver;
+ import android.content.Intent;
+@@ -463,6 +466,12 @@ public class EditableCalligraphy implements Command{
+ 			
+ 			currentpos++;
+ 			setFlipDst(true,"insertVEditable");
++			
++			if(mv.getTouchMode() instanceof HandWriteMode){
++				boolean isMindmapEdit = ((HandWriteMode)mv.getTouchMode()).isMindMapEditableStatus();
++				if(isMindmapEdit)
++					currentMindMapItem.addNewWord(e);
++			}
+ 		}
+ 	}
+ 	public EditableCalligraphyItem insertImage(Bitmap m, Matrix matrix,Uri imageUri)
+@@ -938,17 +947,31 @@ public class EditableCalligraphy implements Command{
+ 	
+ 	float scale;
+ 	float recycle_line = 0;
+-	float recycle_bottom_line = 850;
++	float recycle_bottom_line = 900;
+ 	int lastLineStartID = 0;
+ 	boolean recycleable;
+ 	int recycle_lastIndex = 0;
+ 	int recycle_firstIndex = 10000;
+ 	float[] recycleValues = new float[9];
+ 	boolean bottomflag = true;
++	
++	private MindMapItem currentMindMapItem;
++	public MindMapItem getCurrentMindMapItem(){
++		return this.currentMindMapItem;
++	}
++	public void setCurrentMindMapItem(MindMapItem item){
++		this.currentMindMapItem = item;
++	}
++	private boolean drawMapBegin = false;
++	private int mindMapBeginY;
++	private Bitmap tmp;//排版里暂存bitmap
++	int x;
++	int y;
+ 	public void update(Bitmap m,boolean flip)
+ 	{
+-		
++		lastLineStartID = 0; 
+ 		bottomflag = true;
++		drawMapBegin = false;
+ 		recycleable = false;
+ 		
+ //		workList.clear();
+@@ -962,14 +985,6 @@ public class EditableCalligraphy implements Command{
+ 		else
+ 			matrix = Start.c.view.getMMMatrix();
+ 		
+-		
+-		
+-//		Log.e("saveTimer", "cancel");
+-//		Start.saveHandler.removeMessages(1);
+-//		Start.saveHandler.sendEmptyMessageDelayed(1, 15000);
+-//		Start.kanboxUploadHandler.removeMessages(1);
+-//		Start.kanboxUploadHandler.sendEmptyMessageDelayed(1, 630000);
+-		
+ 		if(available.getDirect() == 1){
+ //			update_vertical_fromRight(m, matrix);
+ 			return;
+@@ -981,10 +996,6 @@ public class EditableCalligraphy implements Command{
+ 		scale = values[0];
+ 		resetRecycleLimit(scale);
+ 		
+-//		Log.e("Scale", "!!!zoom"+available.getZoomable() + " id:" + available.getAid()
+-//				+ " currentScale:-------------" + scale);
+-		
+-//		Log.i("BitmapScale", "Scale in update bitmap  " + scale);
+ 		float dScale ;//应该显示的缩放比例
+ 		float width = 0.0f;
+ 		
+@@ -992,9 +1003,8 @@ public class EditableCalligraphy implements Command{
+ 		c = new Canvas();
+ 		c.setBitmap(m);
+ 		
+-		int x=start_x;
+-		int y=start_y;
+-		
++		x=start_x;
++		y=start_y;
+ 		
+ 		if(Available.AVAILABLE_NUMBER.equals(available.getControltype())){
+ 			int tap = (linespace - available.getAfontsize())/2;
+@@ -1004,7 +1014,6 @@ public class EditableCalligraphy implements Command{
+ 			return;
+ 		}
+ 		
+-		
+ 		float tt = 0;
+ 		float maxHeight=0;
+ 		
+@@ -1027,8 +1036,6 @@ public class EditableCalligraphy implements Command{
+ 				Log.e("audio", "audioException",e2);
+ 				continue;
+ 			}
+-			
+-			
+ 			e.getMatrix().getValues(values);
+ 			
+ 			if(EditableCalligraphyItem.getType(e.getCharType()) == Types.CharsWithoutStroke || 
+@@ -1043,26 +1050,20 @@ public class EditableCalligraphy implements Command{
+ 			}
+ 			
+ 			tt = values[0];//字体生成时的缩放比例
+-//			Log.e("wordmatrix", "itemid:" + i + "tt" + tt);
+-			
+ 			if(maxHeight < (linespace + VMargin)*scale){
+ 				maxHeight = (linespace + VMargin)*scale;
+-//				Log.e("max","i" + i + "scale:" + scale + " maxHeight:" + maxHeight);
+ 			}
+-			
+ 			if(e.getWidth()  > end_x - x && x != start_x){
+ 				if(available.getLinenumber() != 1){
+ 					x = start_x;
+-//					Log.e("EndofLine", "y:" + y); 
+ 					y += maxHeight;
+ 					maxHeight=0;
+ 					mv.addRowNumber(available.getControltype());
+-					
+ 					//记录到光标为止，行首字的id
+-					if(i <= this.currentpos){
++					if(i < this.currentpos){
+ 						lastLineStartID = i + 1;
++						Log.e("mindmap", "newline lastLineStartID set:" + lastLineStartID);
+ 					}
+-					
+ 				}else{
+ 					continue;
+ 				}
+@@ -1080,7 +1081,6 @@ public class EditableCalligraphy implements Command{
+ 						tem ++;
+ 						maxHeight = tem * linespace * scale;
+ 					}
+-				
+ 				}
+ 			}
+ 			
+@@ -1097,179 +1097,152 @@ public class EditableCalligraphy implements Command{
+ 				mv.addRowNumber(available.getControltype());
+ 				
+ 				//记录到光标为止，行首字的id
+-				if(i <= this.currentpos){
++				if(i < this.currentpos){
+ 					lastLineStartID = i + 1;
++					Log.e("mindmap", "endofline lastLineStartID set:" + lastLineStartID + " currentPos:" + currentpos);
+ 				}
+ 				continue;
+ 			}
+ 			
+-
+-			
+-			if(e.type != EditableCalligraphyItem.Types.Space && e.type != EditableCalligraphyItem.Types.EnSpace){
+-				
+-				//画所有的字
+-				Bitmap tmp = e.getCharBitmap();
+-//				if(tmp == null){
+-//					//图片有可能为空
+-//					Log.e("imageNull","temp == null");
+-//				}else{
+-					
+-					float pad = 0.0f;
+-					
+-					if(available.getAlinespace() != 0){
+-						CursorDrawBitmap.mIntervalHeight = available.getAlinespace();
+-					}
++			//画导图
++			if(e.isSpecial()){
+ 				
+-					if(Available.AVAILABLE_SUBJECT.equals(available.getControltype())){
+-						tt = 1;
+-					}
+-					if(e.getHeight()/tt < CursorDrawBitmap.mIntervalHeight) {
+-						pad = (CursorDrawBitmap.mIntervalHeight  - 
+-								e.getHeight()/tt)  /1.2f;
+-//						Log.e("pad", "i:" + i + "e.getHeight():" + e.getHeight() + 
+-//								" mIntervalHeight:" + CursorDrawBitmap.mIntervalHeight
+-//								+ " tmp.getHeight():" + tmp.getHeight()
+-//								+ " pad:" + pad
+-//								+ " tt:" + tt
+-//								+ " available.getControltype():" + available.getControltype());
+-					}
+-					if(e.type == Types.ImageItem){
+-						if(e.getWidth()* dScale > Start.SCREEN_WIDTH)
+-							x += e.getFlipDstX();
+-//						Log.v("ImageSlideMode", "update image x:" + x + " flipdst:" + e.getFlipDstX() + " x:" + x);
+-					}
+-					Matrix mm = new Matrix();
+-					if(flip_dst < BaseBitmap.TITLE_HEIGHT){
+-						mm.postTranslate(x,y+pad);//test -70
+-					}else{
+-						int t = y+ (int)pad - flip_dst + BaseBitmap.TITLE_HEIGHT;
+-	//					mm.postTranslate(x,y+pad - flip_dst + BaseBitmap.TITLE_HEIGHT);//test -70
+-						mm.postTranslate(x,t);//test -70
+-						
+-					}
+-					
+-					
+-					if(e.type == Types.CharsWithoutStroke || 
+-							e.type == Types.AUDIO ||
+-							e.type == Types.VEDIO ||
+-							e.type == Types.ImageItem){
+-						mm.preScale(dScale, dScale);
+-					}
+-					
+-					mm.getValues(recycleValues);
+-					
+-//					if(e.type == Types.ImageItem){
+-//						Log.e("test", iden + " recycleValues[5]" + (recycleValues[5]  + e.getHeight()*dScale));
+-//						Log.e("test", "recycleValues[5]" + recycleValues[5]);
++				if(drawMapBegin){
++					//已经进入该副导图排版过程,跳过导图内的所有字
++					continue;
++				}
++				//遇到该导图的第一个字,取出对应的导图引用，开始排版绘制每一个字
++				drawMapBegin = true;
++				mindMapBeginY = y;
++				MindMapItem mapItem = e.getMindMapItem();
++				
++				
++				updateMindMap(mapItem, p,x);
++//				y = mindMapBeginY +  mapItem.getMarginTop()*available.getAlinespace();
++//				LogUtil.getInstance().v("mindmap", "mindmap getMarginTop:" + mapItem.getMarginTop());
++//				int l;
++//				for(l=0;l<mapItem.getCharList().size();l++){
++//					e = mapItem.getCharList().get(l);
++//					float mappad = (CursorDrawBitmap.mIntervalHeight  - e.getHeight()/tt)  /1.2f;
++//					Matrix mm = new Matrix();
++//					if(flip_dst < BaseBitmap.TITLE_HEIGHT){
++//						mm.postTranslate(x,y+mappad);//test -70
++//					}else{
++//						int t = y+ (int)mappad - flip_dst + BaseBitmap.TITLE_HEIGHT;
++//						mm.postTranslate(x,t);//test -70
+ //					}
++//					tmp = e.getCharBitmap();
++//					c.drawBitmap(tmp, mm, p);
++//					mm.postTranslate(0, tmp.getHeight());
++//					c.drawBitmap(Start.BUTTOM_LINE_BITMAP, mm, p);
++//					
++//					e.setCurPos(x, y);
++//					x += e.getWidth() + HMargin;
++//				}
++//				i += l;
++				
++				
++			}else{
++			
++				 if(e.type != EditableCalligraphyItem.Types.Space && e.type != EditableCalligraphyItem.Types.EnSpace){
++					//画所有的字
+ 					
++					 tmp = e.getCharBitmap();
++						float pad = 0.0f;
++						if(available.getAlinespace() != 0){
++							CursorDrawBitmap.mIntervalHeight = available.getAlinespace();
++						}
++						if(Available.AVAILABLE_SUBJECT.equals(available.getControltype())){
++							tt = 1;
++						}
++						if(e.getHeight()/tt < CursorDrawBitmap.mIntervalHeight) {
++							pad = (CursorDrawBitmap.mIntervalHeight  - 
++									e.getHeight()/tt)  /1.2f;
++	//						Log.e("pad", "i:" + i + "e.getHeight():" + e.getHeight() + 
++	//								" mIntervalHeight:" + CursorDrawBitmap.mIntervalHeight
++	//								+ " tmp.getHeight():" + tmp.getHeight()
++	//								+ " pad:" + pad
++	//								+ " tt:" + tt
++	//								+ " available.getControltype():" + available.getControltype());
++						}
++						if(e.type == Types.ImageItem){
++							if(e.getWidth()* dScale > Start.SCREEN_WIDTH)
++								x += e.getFlipDstX();
++						}
++						Matrix mm = new Matrix();
++						if(flip_dst < BaseBitmap.TITLE_HEIGHT){
++							mm.postTranslate(x,y+pad);//test -70
++						}else{
++							int t = y+ (int)pad - flip_dst + BaseBitmap.TITLE_HEIGHT;
++							mm.postTranslate(x,t);//test -70
++							
++						}
++						if(e.type == Types.CharsWithoutStroke || 
++								e.type == Types.AUDIO ||
++								e.type == Types.VEDIO ||
++								e.type == Types.ImageItem){
++							mm.preScale(dScale, dScale);
++						}
++						
++						mm.getValues(recycleValues);
+ 						if(recycleValues[5] + e.getHeight()*dScale < recycle_line){
+ 							//因为有BaseBitmap.TITLE_HEIGHT; 在超出屏幕BaseBitmap.TITLE_HEIGHT时被释放；
+ 							recycleable = true;
+ 							recycle_lastIndex = i;
+ 							//如果是图片，立即释放
+ 							if(e.type == Types.ImageItem){
+-//								Log.e("test", "image recycle from top" + iden);
++	//							Log.e("test", "image recycle from top" + iden);
+ 								if(e.itemStatus == ItemStatus.NORMAL){
+ 									e.recycleBitmap();
+-//									Log.e("time", " !imageItem recycle " + iden);
+ 									e.setRecycleStatus("recycle top " + iden);
+ 								}
+-//								if(e.itemStatus == ItemStatus.QUEUED){
+-//									if(WorkQueue.getInstance().removeWork(new resetImageWork(e,iden))){
+-//										Log.e("adddelete", "remove queue " + iden);
+-//										e.setRecycleStatus("removed from queue " + iden);
+-//									}
+-//								}
+ 							}
+ 						}else if(recycleValues[5] > recycle_bottom_line ){
+ 							if(bottomflag){
+-//								if(i > CalligraphyDB.INIT_WORD_COUNT){
+ 									recycleable = true;
+ 									recycle_firstIndex = i;
+ 									bottomflag = false;
+-//								}
+ 							}
+-								//如果是图片，立即释放
+-								if(e.type == Types.ImageItem){
+-//									Log.e("test", "image recycle from bottom" + iden);
+-//									Log.e("recycleImage", " imageItem recycle " + iden + " bitmap:" + (e.getCharBitmap()==null)
+-//											+ " isRecycle:" + e.getCharBitmap().isRecycled() +
+-//											" IsOOMPIC :" + (e.getCharBitmap() == Start.OOM_BITMAP));
+-									if(e.itemStatus == ItemStatus.NORMAL){
+-										
+-										e.recycleBitmap();
+-										e.setRecycleStatus("recycle bottom " + iden);
+-//										Log.e("adddelete", " imageItem recycle " + iden );
+-									}
+-//									if(e.itemStatus == ItemStatus.QUEUED){
+-//										Log.e("adddelete", "remove queue " + iden);
+-//										if(WorkQueue.getInstance().removeWork(new resetImageWork(e,iden))){
+-//											Log.e("adddelete", "!!!!!!!!!!!remove queue " + iden);
+-//											e.setRecycleStatus("removed from queue " + iden);
+-//										}
+-//									}
++							//如果是图片，立即释放
++							if(e.type == Types.ImageItem){
++								if(e.itemStatus == ItemStatus.NORMAL){
++									e.recycleBitmap();
++									e.setRecycleStatus("recycle bottom " + iden);
+ 								}
+-	//							Log.v("flipper", "set recycle_firstIndex " + i + " recycleValues:" +  recycleValues[5]);
+-							
++							}
+ 						}
+ 						else{
+ 							if(tmp == null || ((tmp != null) && tmp.isRecycled())){
+-								
+-//								for(int j=0;j<workList.size();j++){
+-//									Log.v("workqueue", j + "        " + workList.get(j));
+-//									Log.v("workqueue", "       iden:" + iden + " contains:" + workList.contains(iden));
+-//								}
+-//								if(!workList.contains(iden) && !flip){
+-//								if(!WorkQueue.getInstance().contains(iden)){
+ 								boolean isInsert = false;
+ 									try {
+ 										if(e.type == EditableCalligraphyItem.Types.CharsWithStroke){
+-//											Log.v("workqueue", "						add identify:" + iden);
+ 											WorkQueue.getInstance().
+ 											execute(new resetBitmapWork((VEditableCalligraphyItem)e 
+ 													,iden));
+-											
+ 										}else if(e.type == Types.ImageItem){
+-											Log.e("time", "item " + iden + " status:" + e.itemStatus);
+ 											if(e.itemStatus == ItemStatus.RECYCLED){
+ 												isInsert = WorkQueue.getInstance().executeImage(new resetImageWork(e,iden));
+-												Log.e("workqueue", "add image work " + iden);
+-//												if(isInsert){
+-//													e.setQueueStatus("insert " + iden);
+-//													Log.e("isInsert", "insert " + iden);
+-//													Log.e("adddelete", "update insert " + iden);
+-//												}
+ 											}
+ 										}
+ 									} catch (ClassCastException e2) {
+-										// TODO: handle exception
+ 										Log.e(TAG, "addtoworkqueue", e2);
+ 									}
+-									//java.lang.ClassCastException: com.jinke.calligraphy.app.branch.EditableCalligraphyItem
+-//									Log.e("recycle", "identify add queue:" + iden);
+-//								}
++								//java.lang.ClassCastException: com.jinke.calligraphy.app.branch.EditableCalligraphyItem
+ 								c.drawBitmap(Start.EMPTY_BITMAP, mm, p);
+ 							}else{
+ 								c.drawBitmap(tmp, mm, p);
+-								if(e.isSpecial()){
+-									int wordHeight = tmp.getHeight();
+-									mm.postTranslate(0, wordHeight);
+-									c.drawBitmap(Start.BUTTOM_LINE_BITMAP, mm, p);
+-								}
+ 							}
+ 						}
+-				
+-//			}//end null if
+-			}//end  if
+-			if(e != null){
+-			if(e.type == Types.ImageItem)
+-				Log.e("ispic", "setX:" + x + " setY:" + y);
+-			e.setCurPos(x, y);
+-			x += e.getWidth()*dScale  + HMargin;
++				}//end  if
++				drawMapBegin = false;
++				if(e != null){
++				if(e.type == Types.ImageItem)
++					Log.e("ispic", "setX:" + x + " setY:" + y);
++				e.setCurPos(x, y);
++				x += e.getWidth()*dScale  + HMargin;
++				}
++	//			x += e.getWidth()  + HMargin;
+ 			}
+-//			x += e.getWidth()  + HMargin;
+-			
+ 		}//end for
+ 		if(flip){
+ 			startRecycleInVisiableBitmap();
+@@ -1283,10 +1256,68 @@ public class EditableCalligraphy implements Command{
+ 			bottomY = y + (int)maxHeight;
+ 			setFlipDst(false,"update");//绕圈儿鸟
+ 		}
++	}
++	int maxX = 0;
++	public void updateMindMap(MindMapItem mapItem,Paint p,int preX){
++		
++//		y = mindMapBeginY +  mapItem.getMarginTop()*available.getAlinespace();
++		LogUtil.getInstance().e("mindmap", "brotherButtom:" + mapItem.getbrotherButtom());
++		if(mapItem.getbrotherButtom() == -1){
++			y = mindMapBeginY +  mapItem.getMarginTop()*available.getAlinespace();
++		}else{
++			y = mapItem.getbrotherButtom() +  mapItem.getMarginTop()*available.getAlinespace();
++		}
++		
++		LogUtil.getInstance().v("mindmap", "mindmap getMarginTop:" + mapItem.getMarginTop());
++		x = preX;
++		maxX = x;
++		int l;
++		EditableCalligraphyItem e = null;
++		for(l=0;l<mapItem.getCharList().size();l++){
++			e = mapItem.getCharList().get(l);
++			float mappad = (CursorDrawBitmap.mIntervalHeight  - e.getHeight())  /1.2f;
++			Matrix mm = new Matrix();
++			if(flip_dst < BaseBitmap.TITLE_HEIGHT){
++				mm.postTranslate(x,y+mappad);//test -70
++			}else{
++				int t = y+ (int)mappad - flip_dst + BaseBitmap.TITLE_HEIGHT;
++				mm.postTranslate(x,t);//test -70
++			}
++			tmp = e.getCharBitmap();
++			c.drawBitmap(tmp, mm, p);
++			mm.postTranslate(0, tmp.getHeight());
++			c.drawBitmap(Start.BUTTOM_LINE_BITMAP, mm, p);
++			
++			e.setCurPos(x, y);
++			
++			x += e.getWidth() + HMargin;	
++			if(x>maxX)
++				maxX = x;
++		}
++		y += available.getAlinespace();
++		mapItem.setButtom(y);
+ 		
++		if(mapItem.getChildList() != null && mapItem.getChildList().size()!= 0){
++			MindMapItem tempItem = null;
++			preX = maxX + 100;
++			for(int j=0;j<mapItem.getChildList().size();j++){
++				tempItem = mapItem.getChildList().get(j);
++//				if(j==0){
++//					updateMindMap(tempItem, p,preX,mindMapBeginY);
++//				}
++//				else
++					updateMindMap(tempItem, p,preX);
++				
++//				if(j == mapItem.getChildList().size()-1){					
++//				}else{
++					
++//				}
++				
++			}
++		}
++		return;
+ 	}
+ 	
+-	
+ 	public void update_vertical(Bitmap m,Matrix matrix)
+ 	{
+ 		Log.e("matrix", "zoom"+available.getZoomable());
+@@ -3043,7 +3074,7 @@ public class EditableCalligraphy implements Command{
+ 		x -= bitmapOffsetX;
+ 		y -= bitmapOffsetY;
+ 		
+-		Log.v("CurrentPos", "setCurrentPos x:"+ x +" y:"+y);
++		LogUtil.getInstance().e("mindmap", "x:" + x  +" y:" + y);
+ 		int i =0;
+ 		float initScale = 0;
+ 		float[] eValues = new float[9];
+@@ -3051,15 +3082,11 @@ public class EditableCalligraphy implements Command{
+ 		Rect r;
+ 		for( i =0 ; i< charList.size(); i++){
+ 			EditableCalligraphyItem e = charList.get(i);
++			LogUtil.getInstance().e("mindmap", "id:"+e.getItemID() + " special:" + e.isSpecial());
+ 			if(!e.isSpecial()){
+ 				continue;
+ 			}
+ 			
+-			if(e.getCurPosX() > 900){
+-				Log.e("ispic", "pic out of screen");
+-				break;
+-			}
+-			
+ 			e.getMatrix().getValues(eValues);
+ 			initScale = eValues[0];
+ 			
+@@ -3068,6 +3095,7 @@ public class EditableCalligraphy implements Command{
+ 					e.getCurPosY()- flip_dst - cursorMargin,
+ 					(int)(e.getCurPosX()+ e.getWidth() + HMargin),
+ 					(int)(e.getCurPosY()+ e.getHeight()  + VMargin*scale - flip_dst) + cursorMargin);
++			LogUtil.getInstance().e("mindmap", "id:" + e.getItemID() + " rect:" + r.toShortString());
+ 			if(r.contains((int)x, (int)y)){
+ 				return e;
+ 			}
+@@ -3085,6 +3113,30 @@ public class EditableCalligraphy implements Command{
+ 		
+ 		return true;
+ 	}
++	
++	public MindMapItem addNewMindMapItem(){
++		Log.e("mindmap", "lastLineStartID:" + lastLineStartID + " currentPos:" + currentpos);
++		if(lastLineStartID < charList.size() && 
++				currentpos <= charList.size()//光标在最后
++				&& lastLineStartID <= currentpos){
++			MindMapItem map = new MindMapItem();
++			EditableCalligraphyItem item = null;
++			for(int i=lastLineStartID; i<currentpos;i++){
++				item = charList.get(i);
++				if(item.type == Types.CharsWithStroke){
++					Log.e("mindmap", "add new word " + i);
++					map.addNewWord(item);
++				}
++			}//end for
++			setCurrentMindMapItem(map);
++			return map;
++		}
++		return null;
++	}
++	
++	
++	
++	
+ }
+ class resetBitmapWork implements Runnable{
+ 	VEditableCalligraphyItem e = null;
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
+index 42b02d4..75ce37b 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
+@@ -6,6 +6,7 @@ import java.io.Serializable;
+ import java.util.Calendar;
+ 
+ import com.jinke.calligraphy.database.CalligraphyDB;
++import com.jinke.mindmap.MindMapItem;
+ import com.jinke.single.BitmapCount;
+ 
+ import android.graphics.Bitmap;
+@@ -43,13 +44,20 @@ public class EditableCalligraphyItem implements Serializable{
+ 	private Bitmap playingBitmap;
+ 	private Bitmap stopBitmap;
+ 	
+-	private boolean isSpecial = true;
+-	
++	private boolean isSpecial = false;
++	private MindMapItem belongsItem = null;
++	public MindMapItem getMindMapItem(){
++		return belongsItem;
++	}
++	public void setMindMapItem(MindMapItem item){
++		this.belongsItem = item;
++	}
+ 	public boolean isSpecial(){
+ 		return isSpecial;
+ 	}
+ 	public void setSpecial(){
+ 		isSpecial = true;
++		Log.e("mindmap", itemId + " set special");
+ 	}
+ 	
+ 	
+diff --git a/src/com/jinke/calligraphy/database/CalligraphyDB.java b/src/com/jinke/calligraphy/database/CalligraphyDB.java
+index fc7d619..a1b019e 100644
+--- a/src/com/jinke/calligraphy/database/CalligraphyDB.java
++++ b/src/com/jinke/calligraphy/database/CalligraphyDB.java
+@@ -32,7 +32,7 @@ import android.util.Log;
+ 
+ public class CalligraphyDB {
+ 	
+-	public static int INIT_WORD_COUNT = 250;
++	public static int INIT_WORD_COUNT = 270;
+ 	
+ 	public static final int OP_ADD_WORD = 1;
+ 	public static final int OP_DELETE_WORD = -1;
+@@ -119,7 +119,7 @@ public class CalligraphyDB {
+ 		else if(scale > 2.5)
+ 			INIT_WORD_COUNT = 25;
+ 		else if(scale <= 1)
+-			INIT_WORD_COUNT = 250;
++			INIT_WORD_COUNT = 275;
+ 		
+ 		
+ 	}
+diff --git a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+index d24ca2c..cc56e0e 100644
+--- a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
++++ b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+@@ -17,8 +17,10 @@ import com.jinke.mindmap.DownArrowDrawer;
+ import com.jinke.mindmap.LeftArrowDrawer;
+ import com.jinke.mindmap.MathUtil;
+ import com.jinke.mindmap.MathUtil.DIRECTION;
++import com.jinke.mindmap.MindMapItem;
+ import com.jinke.mindmap.RightArrowDrawer;
+ import com.jinke.mindmap.UpArrowDrawer;
++import com.jinke.single.LogUtil;
+ 
+ public class HandWriteMode implements TouchMode{
+ 
+@@ -31,14 +33,14 @@ public class HandWriteMode implements TouchMode{
+ 	private boolean isReleased;
+ 	private int mCounter;
+ 	private Runnable mLongPressRunnable;
+-	private static final int TOUCH_SLOP = 20;
++	private static final int TOUCH_SLOP = 40;
+ 	private EditableCalligraphyItem picItem = null;
+ 	private boolean isPicPress;
+ 	
+ 	private EditableCalligraphyItem mindItem = null;
+ 	private boolean isMindmapPress;
+ 	private boolean drawArrow = false;
+-	
++	private boolean mindmapEditableFlag = false;
+ 	
+ 	
+ 	//arrow draw
+@@ -48,6 +50,16 @@ public class HandWriteMode implements TouchMode{
+ 	private LeftArrowDrawer leftArrowDrawer;
+ 	private RightArrowDrawer rightArrowDrawer;
+ 	
++	public void setMindMapEditStatusTrue(){
++		this.mindmapEditableFlag = true;
++	}
++	public void setMindMapEditStatusFalse(){
++		this.mindmapEditableFlag = false;
++	}
++	public boolean isMindMapEditableStatus(){
++		return this.mindmapEditableFlag;
++	}
++	
+ 	public void initArrowDrawer(){
+ 		upArrowDrawer = new UpArrowDrawer();
+ 		downArrowDrawer = new DownArrowDrawer();
+@@ -94,6 +106,7 @@ public class HandWriteMode implements TouchMode{
+ 		}
+ 		else if(isMindmapPress){
+ 			drawArrow = true;
++			setMindMapEditStatusTrue();
+ 			view.invalidate();
+ 		}
+ 	}
+@@ -140,6 +153,7 @@ public class HandWriteMode implements TouchMode{
+ 			isMindmapPress = false;
+ 		}else{
+ 			isMindmapPress = true;
++			LogUtil.getInstance().e("mindmap","mind map long press");
+ 		}
+ 		return isMindmapPress;
+ 	}
+@@ -171,21 +185,36 @@ public class HandWriteMode implements TouchMode{
+ 			}
+ 		}
+ 		if(isMindmapPress){
+-			DIRECTION direction = 
+-				MathUtil.getAngle((double)mLastMotionX, (double)mLastMotionY, (double)event.getX(), (double)event.getY());
+-			if(direction == DIRECTION.UP){
+-				arrowDrawer = upArrowDrawer;
+-			}else if(direction == DIRECTION.RIGHT){
+-				arrowDrawer = rightArrowDrawer;
+-			}else if(direction == DIRECTION.DOWN){
+-				arrowDrawer = downArrowDrawer;
++			if(isMoved){
+ 			}else{
+-				arrowDrawer = leftArrowDrawer;
++				if(!drawArrow){
++					//还没有出箭头.判断是长按，还是正常书写
++					int x = (int)event.getX();
++					int y = (int)event.getY();
++					if(Math.abs(mLastMotionX - x) > TOUCH_SLOP ||
++							Math.abs(mLastMotionY - y) > TOUCH_SLOP){
++						isMoved = true;
++					}
++				}else{
++					DIRECTION direction = 
++						MathUtil.getAngle((double)mLastMotionX, (double)mLastMotionY, (double)event.getX(), (double)event.getY());
++					if(direction == DIRECTION.UP){
++						arrowDrawer = upArrowDrawer;
++					}else if(direction == DIRECTION.RIGHT){
++						arrowDrawer = rightArrowDrawer;
++					}else if(direction == DIRECTION.DOWN){
++						arrowDrawer = downArrowDrawer;
++					}else{
++						arrowDrawer = leftArrowDrawer;
++					}
++				}
+ 			}
+-			
+-		}else{
++		}
++		if(!drawArrow){
++			//确定是长按，画出箭头后，移动不再记录
+ 			view.baseImpl.makeNextPoint(event.getX(), event.getY());
+ 		}
++		
+ 	}
+ 
+ 	@Override
+@@ -193,15 +222,31 @@ public class HandWriteMode implements TouchMode{
+ 		// TODO Auto-generated method stub
+ 		if(isPicPress)
+ 			isReleased = true;
+-		
+-		if(isMindmapPress){
++		if(!drawArrow)
++			view.baseImpl.after();
++		else
++			clear();
++		if(isMindmapPress && drawArrow){
+ 			isMindmapPress = false;
+ 			drawArrow = false;
+-		}else{
+-			view.baseImpl.after();
++			createNewMindMapItem();
++			view.cursorBitmap.updateHandwriteState();
+ 		}
++		
++		
+ 	}
++	/**
++	 * 在按下的节点上，创建新的节点
++	 */
++	private void createNewMindMapItem() {
++		// TODO Auto-generated method stub
++		MindMapItem item = mindItem.getMindMapItem().createNewChild();
++		//改变当前编辑节点
++		if(view.cursorBitmap.cal_current.getID() == 3){
++			view.cursorBitmap.cal_current.setCurrentMindMapItem(item);
++		}
+ 
++	}
+ 	@Override
+ 	public void draw(Canvas canvas) {
+ 		// TODO Auto-generated method stub
+@@ -247,6 +292,5 @@ public class HandWriteMode implements TouchMode{
+ 		}
+ 	}
+ 
+-	
+ 
+ }
+diff --git a/src/com/jinke/mindmap/ArrowDrawer.java b/src/com/jinke/mindmap/ArrowDrawer.java
+new file mode 100644
+index 0000000..f5d5b43
+--- /dev/null
++++ b/src/com/jinke/mindmap/ArrowDrawer.java
+@@ -0,0 +1,15 @@
++package com.jinke.mindmap;
++
++import android.graphics.Canvas;
++import android.graphics.Matrix;
++import android.graphics.Paint;
++
++public abstract class ArrowDrawer {
++	public Paint mPaint;
++	public Matrix arrowMatrix;
++	public ArrowDrawer(){
++		mPaint = new Paint();
++		arrowMatrix = new Matrix();
++	}
++	public abstract void doDraw(Canvas canvas,int mLastMotionX,int mLastMotionY);
++}
+diff --git a/src/com/jinke/mindmap/DownArrowDrawer.java b/src/com/jinke/mindmap/DownArrowDrawer.java
+new file mode 100644
+index 0000000..91a102f
+--- /dev/null
++++ b/src/com/jinke/mindmap/DownArrowDrawer.java
+@@ -0,0 +1,40 @@
++package com.jinke.mindmap;
++
++import com.jinke.calligraphy.activity.Properyt;
++import com.jinke.calligraphy.app.branch.Start;
++
++import android.graphics.Canvas;
++
++public class DownArrowDrawer extends ArrowDrawer{
++	
++	public DownArrowDrawer(){
++		super();
++	}
++	@Override
++	public void doDraw(Canvas canvas, int mLastMotionX, int mLastMotionY) {
++		// TODO Auto-generated method stub
++		//向上
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX, (mLastMotionY-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP));
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向右
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getHeight()*2+Properyt.ARROW_FLIP, (mLastMotionY));
++		arrowMatrix.preRotate(90);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向下,红色
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getWidth(),(mLastMotionY+Start.BLACK_ARROW_BITMAP.getHeight()+Properyt.ARROW_FLIP));
++		arrowMatrix.preRotate(180);
++		canvas.drawBitmap(Start.RED_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向左
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP,(mLastMotionY+Start.BLACK_ARROW_BITMAP.getWidth()));
++		arrowMatrix.preRotate(-90);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++	}
++
++}
+diff --git a/src/com/jinke/mindmap/LeftArrowDrawer.java b/src/com/jinke/mindmap/LeftArrowDrawer.java
+new file mode 100644
+index 0000000..56b9d22
+--- /dev/null
++++ b/src/com/jinke/mindmap/LeftArrowDrawer.java
+@@ -0,0 +1,40 @@
++package com.jinke.mindmap;
++
++import com.jinke.calligraphy.activity.Properyt;
++import com.jinke.calligraphy.app.branch.Start;
++
++import android.graphics.Canvas;
++
++public class LeftArrowDrawer extends ArrowDrawer{
++	
++	public LeftArrowDrawer(){
++		super();
++	}
++	@Override
++	public void doDraw(Canvas canvas, int mLastMotionX, int mLastMotionY) {
++		// TODO Auto-generated method stub
++		//向上
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX, (mLastMotionY-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP));
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向右
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getHeight()*2+Properyt.ARROW_FLIP, (mLastMotionY));
++		arrowMatrix.preRotate(90);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向下
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getWidth(),(mLastMotionY+Start.BLACK_ARROW_BITMAP.getHeight()+Properyt.ARROW_FLIP));
++		arrowMatrix.preRotate(180);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向左,红色
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP,(mLastMotionY+Start.BLACK_ARROW_BITMAP.getWidth()));
++		arrowMatrix.preRotate(-90);
++		canvas.drawBitmap(Start.RED_ARROW_BITMAP, arrowMatrix, mPaint);
++	}
++
++}
+diff --git a/src/com/jinke/mindmap/MathUtil.java b/src/com/jinke/mindmap/MathUtil.java
+new file mode 100644
+index 0000000..13f05aa
+--- /dev/null
++++ b/src/com/jinke/mindmap/MathUtil.java
+@@ -0,0 +1,65 @@
++package com.jinke.mindmap;
++
++public class MathUtil {
++
++	public static enum DIRECTION {RIGHT,UP,DOWN,LEFT};
++	private static double result;
++	/**
++	 * 判断移动到的位置与起始位置的相对方位
++	 * @param x1 起始点
++	 * @param y1 起始点
++	 * @param x2 移动点
++	 * @param y2 移动点
++	 * @return
++	 */
++	public static DIRECTION getAngle(double x1,double y1,double x2,double y2){
++		
++		
++		if(y2 < y1){
++			//在起始点上方
++			if(x1 == x2){
++				return DIRECTION.UP;
++			}
++			result = - Math.atan((y2-y1)/(x2-x1)) *180/Math.PI;
++			if(result < 0){
++				result += 180;
++			}
++			if(result <=45){
++				return DIRECTION.RIGHT;
++			}
++			if(result > 45 && result < 135){
++				return DIRECTION.UP;
++			}
++			if(result >= 135){
++				return DIRECTION.LEFT;
++			}
++		}else if(y2 == y1){
++			if(x2 > x1){
++				return DIRECTION.RIGHT;
++			}else{
++				return DIRECTION.LEFT;
++			}
++		}else{
++			//在起始点下方
++			if(x1 == x2){
++				return DIRECTION.DOWN;
++			}
++			result = Math.atan((y2-y1)/(x2-x1)) *180/Math.PI;
++			if(result < 0){
++				result += 180;
++			}
++			if(result <= 45){
++				return DIRECTION.RIGHT;
++			}
++			if(result > 45 && result <135){
++				return DIRECTION.DOWN;
++			}
++			if(result >= 135){
++				return DIRECTION.LEFT;
++			}
++			
++		}
++		
++		return DIRECTION.UP;
++	}
++}
+diff --git a/src/com/jinke/mindmap/MindMapItem.java b/src/com/jinke/mindmap/MindMapItem.java
+new file mode 100644
+index 0000000..afc92ec
+--- /dev/null
++++ b/src/com/jinke/mindmap/MindMapItem.java
+@@ -0,0 +1,107 @@
++package com.jinke.mindmap;
++
++import java.util.ArrayList;
++import java.util.List;
++
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem;
++import com.jinke.single.LogUtil;
++
++public class MindMapItem {
++	private MindMapItem parent;
++	private List<MindMapItem> childList;
++	private List<EditableCalligraphyItem> charList;
++	private int level;
++	private int buttom = -1;
++	private int id;
++	public MindMapItem(){
++		parent = null;
++		level = 0;
++		charList = new ArrayList<EditableCalligraphyItem>();
++	}
++	public MindMapItem(MindMapItem parent){
++		this.parent = parent;
++		this.level = parent.getLevel() + 1;
++		charList = new ArrayList<EditableCalligraphyItem>();
++	}
++	public int getLevel(){
++		return this.level;
++	}
++	
++	public void addNewWord(EditableCalligraphyItem item){
++		item.setMindMapItem(this);
++		item.setSpecial();
++		charList.add(item);
++	}
++	
++	public List<MindMapItem> getChildList(){
++		return childList;
++	}
++	public void setChildID(int id){
++		this.id = id;
++	}
++	public int getbrotherButtom(){
++		if(this.parent == null){
++			return -1;
++		}
++		
++		if(id >= 1 && id < parent.childList.size()){
++			return this.parent.childList.get(id-1).getButtom();
++		}
++		if(id == 0){
++			return this.parent.getbrotherButtom();
++		}
++		return -1;
++	}
++	public MindMapItem createNewChild(){
++		MindMapItem childItem = new MindMapItem(this);
++		if(this.childList == null){
++			this.childList = new ArrayList<MindMapItem>();
++		}
++		this.childList.add(childItem);
++		childItem.setChildID(childList.size() -1);
++		return childItem;
++	}
++	public List<EditableCalligraphyItem> getCharList(){
++		return this.charList;
++	}
++	/**
++	 * 排版后，距上方的行数
++	 * @return
++	 */
++	public int getMarginTop(){
++//		if(posterityCount() % 2 == 0){
++//			return posterityCount()/2;
++//		}else{
++//			return (posterityCount()+1)/2;
++//		}
++		return posterityCount()/2;
++	}
++	public void setButtom(int buttom){
++		this.buttom = buttom;
++		LogUtil.getInstance().e("mindmap", id + " setButtom " + buttom);
++	}
++	public int getButtom(){
++		if(childList!=null && childList.size() != 0){
++			if(buttom < childList.get(childList.size() -1).getButtom())
++				return childList.get(childList.size() -1).getButtom();
++		}
++		LogUtil.getInstance().e("mindmap", id + " getButtom " + buttom);
++		return buttom;
++	}
++	/**
++	 * 该节点所有子孙的数量
++	 * @return
++	 */
++	public int posterityCount(){
++		int count = 0;
++		if(childList != null && childList.size() != 0){ 
++			MindMapItem temp = null;
++			for(int i=0;i<childList.size();i++){
++				temp = childList.get(i);
++				count ++;
++				count += temp.posterityCount();
++			}
++		}
++		return count;
++	}
++}
+diff --git a/src/com/jinke/mindmap/RightArrowDrawer.java b/src/com/jinke/mindmap/RightArrowDrawer.java
+new file mode 100644
+index 0000000..6578daa
+--- /dev/null
++++ b/src/com/jinke/mindmap/RightArrowDrawer.java
+@@ -0,0 +1,40 @@
++package com.jinke.mindmap;
++
++import com.jinke.calligraphy.activity.Properyt;
++import com.jinke.calligraphy.app.branch.Start;
++
++import android.graphics.Canvas;
++
++public class RightArrowDrawer extends ArrowDrawer{
++	
++	public RightArrowDrawer(){
++		super();
++	}
++	@Override
++	public void doDraw(Canvas canvas, int mLastMotionX, int mLastMotionY) {
++		// TODO Auto-generated method stub
++		//向上
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX, (mLastMotionY-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP));
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向右,红色
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getHeight()+Properyt.ARROW_FLIP, (mLastMotionY));
++		arrowMatrix.preRotate(90);
++		canvas.drawBitmap(Start.RED_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向下
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getWidth(),(mLastMotionY+Start.BLACK_ARROW_BITMAP.getHeight()+Properyt.ARROW_FLIP));
++		arrowMatrix.preRotate(180);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向左
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP,(mLastMotionY+Start.BLACK_ARROW_BITMAP.getWidth()));
++		arrowMatrix.preRotate(-90);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++	}
++
++}
+diff --git a/src/com/jinke/mindmap/UpArrowDrawer.java b/src/com/jinke/mindmap/UpArrowDrawer.java
+new file mode 100644
+index 0000000..71b64a2
+--- /dev/null
++++ b/src/com/jinke/mindmap/UpArrowDrawer.java
+@@ -0,0 +1,40 @@
++package com.jinke.mindmap;
++
++import com.jinke.calligraphy.activity.Properyt;
++import com.jinke.calligraphy.app.branch.Start;
++
++import android.graphics.Canvas;
++import android.graphics.Matrix;
++import android.graphics.Paint;
++
++public class UpArrowDrawer extends ArrowDrawer{
++	
++	public UpArrowDrawer(){
++		super();
++	}
++	@Override
++	public void doDraw(Canvas canvas,int mLastMotionX,int mLastMotionY) {
++		//向上,红色
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX, (mLastMotionY-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP));
++		canvas.drawBitmap(Start.RED_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向右
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getHeight()*2+Properyt.ARROW_FLIP, (mLastMotionY));
++		arrowMatrix.preRotate(90);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向下
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX+Start.BLACK_ARROW_BITMAP.getWidth(),(mLastMotionY+Start.BLACK_ARROW_BITMAP.getHeight()+Properyt.ARROW_FLIP));
++		arrowMatrix.preRotate(180);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++		
++		//向左
++		arrowMatrix.reset();
++		arrowMatrix.postTranslate(mLastMotionX-Start.BLACK_ARROW_BITMAP.getHeight()-Properyt.ARROW_FLIP,(mLastMotionY+Start.BLACK_ARROW_BITMAP.getWidth()));
++		arrowMatrix.preRotate(-90);
++		canvas.drawBitmap(Start.BLACK_ARROW_BITMAP, arrowMatrix, mPaint);
++	}
++}
+diff --git a/src/com/jinke/pdfcreator/CloudActivity.java b/src/com/jinke/pdfcreator/CloudActivity.java
+new file mode 100644
+index 0000000..1abdc0d
+--- /dev/null
++++ b/src/com/jinke/pdfcreator/CloudActivity.java
+@@ -0,0 +1,81 @@
++package com.jinke.pdfcreator;
++
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.net.MalformedURLException;
++import java.util.LinkedList;
++import java.util.List;
++
++import org.apache.commons.net.ftp.FTPClient;
++import org.apache.commons.net.ftp.FTPReply;
++import com.itextpdf.text.DocumentException;
++import com.jinke.calligraphy.app.branch.EditableCalligraphy;
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem;
++import com.jinke.calligraphy.app.branch.R;
++import com.jinke.calligraphy.app.branch.Start;
++
++import android.app.Activity;
++import android.os.Bundle;
++import android.os.Environment;
++import android.util.Log;
++
++public class CloudActivity extends Activity {
++    /** Called when the activity is first created. */
++	
++	private static final String url="10.0.0.123";
++	private static final String port="21";
++	private static final String username="anonymous";
++	private static final String password="";
++	private static final String remotePath="/pdf";
++	private static final String fileNamePath="/extsd/pdfdir/";
++	private static final String fileName="cloudnote.pdf";
++	
++    @Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.main);
++        
++        
++		
++        List<EditableCalligraphy> editList = Start.c.view.cursorBitmap.listEditableCalligraphy;
++        
++        EditableCalligraphy editable = null;
++        LinkedList<EditableCalligraphyItem> charList = null;
++        EditableCalligraphyItem item = null;
++        for(int i=0;i<editList.size();i++){
++        	editable = editList.get(i);
++        	charList = editable.getCharsList();
++        	Log.e("bound", "charList.size:" + charList.size());
++        	for(int j=0;j<charList.size();j++){
++        		
++        		item = charList.get(j);
++        		Log.v("pdf", "availableid:" + editable.getAvailable().getAid() 
++        				+ " itemid:" + item.getItemID() + " bitmap isRecycle:" + item.getCharBitmap().isRecycled());
++        	}
++        }
++//         
++        CloudNote note = new CloudNote();
++////        note.initPictureList("/extsd/pictures/");
++//        
++        try {
++        	
++
++            String pdfPath = Environment.getExternalStorageDirectory()
++    		.getAbsolutePath()+ "/cloudnote.pdf";
++        	
++//			note.createPDF("/extsd/cloudnote.pdf",editList);
++            note.createPDF(pdfPath,editList);
++		} catch (MalformedURLException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		} catch (DocumentException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		} catch (IOException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		}
++        
++    }
++   
++}
+\ No newline at end of file
+diff --git a/src/com/jinke/pdfcreator/CloudNote.java b/src/com/jinke/pdfcreator/CloudNote.java
+new file mode 100644
+index 0000000..77f4c45
+--- /dev/null
++++ b/src/com/jinke/pdfcreator/CloudNote.java
+@@ -0,0 +1,223 @@
++package com.jinke.pdfcreator;
++
++import java.io.File;
++import java.io.FileOutputStream;
++import java.io.IOException;
++import java.net.MalformedURLException;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.LinkedList;
++import java.util.List;
++
++import android.os.Environment;
++import android.util.Log;
++
++import com.itextpdf.text.Document;
++import com.itextpdf.text.DocumentException;
++import com.itextpdf.text.Element;
++import com.itextpdf.text.Image;
++import com.itextpdf.text.PageSize;
++import com.itextpdf.text.pdf.PdfWriter;
++import com.jinke.calligraphy.app.branch.EditableCalligraphy;
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem;
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.Types;
++import com.jinke.calligraphy.database.BitmapHelper;
++
++public class CloudNote {
++	public static final float titleH=80;//标题的高度
++    public static final float lineSpace=40;//行间距
++    public static final float columSpace=20;//距离PDF两边的宽度
++    public static final float topMargin=50;//距离页面顶部的高度
++    public static final float bottomMargin=30;//距离页面底部的高度
++    public static final float tab=40;
++    public  float width=0;//PDF的宽度
++    public  float height=0;//PDF的高度
++    private Document document;
++    Image lineImage;//
++
++    public void createPDF(String resultPDF, List<EditableCalligraphy> editList) throws DocumentException, MalformedURLException, IOException{
++		 	
++    		document=new Document(PageSize.A4);
++	        PdfWriter writer=PdfWriter.getInstance(document, new FileOutputStream(resultPDF));
++	        document.open();
++//	        Paragraph titleP=new Paragraph("Cloud note\n\n",new Font(FontFamily.HELVETICA, 22));  
++//	        titleP.setAlignment(titleP.ALIGN_CENTER);  
++//	        document.add(titleP);  
++	        lineImage= Image.getInstance(Environment.getExternalStorageDirectory()
++	        		.getAbsolutePath() + "/line.png");
++	        width=PageSize.A4.getWidth();
++	        height=PageSize.A4.getHeight();
++	        
++	        float x=columSpace;
++	        float y=height-titleH;
++	        EditableCalligraphy editable = null;
++	        LinkedList<EditableCalligraphyItem> charList = null;
++//	        EditableCalligraphyItem item = null;
++//	        Image img;
++        	editable = editList.get(0);//标题
++        	charList=editable.getCharsList();
++        	setTitle(x,y, charList);
++        	
++        	
++    		editable=null;
++    		charList=null;
++    		
++    		x=width-200;
++    		editable = editList.get(1);//日期
++    		charList=editable.getCharsList();
++    		setDate(x, y, charList);
++//    		editable = editList.get(2);//行数
++    		
++    		
++    		editable=null;
++    		charList=null;
++    		x=columSpace+tab;
++    		y=y-lineSpace; 
++    		Log.v("pdf", "THis y:"+y);
++        	editable = editList.get(3);//正文
++        	charList = editable.getCharsList();
++         	setText(x,y, charList);
++//	        	for(int j=0;j<charList.size();j++){
++//	        		item = charList.get(j);
++//	        		Log.v("pdf", "availableid:" + editable.getAvailable().getAid() 
++//	        				+ " itemid:" + item.getItemID() + " bitmap isRecycle:" + item.getCharBitmap().isRecycled());
++//	        		array = BitmapHelper.bitmapDecode(item.getCharBitmap());
++////		        	if(type.endsWith("char"))
++//	        		if(item.getType() == Types.CharsWithStroke)
++//		        	{
++//			        	img = Image.getInstance(array);
++//			        	array = null;
++//			        	float dy=0;//调整字体上下位置
++//			        	if((x+img.getScaledWidth())>width)
++//			        	{
++//			        		lineImage.setAbsolutePosition(0,(y - lineImage.getHeight()));
++//					        document.add(lineImage);
++//					        
++//			        		x=columSpace;
++//			        		y=y-lineSpace;
++//			        	}
++//			        	if(y<bottomMargin)	
++//			        	{
++//			        		document.newPage();
++//			        		y=PageSize.A4.getHeight()-topMargin;
++//			        		x=columSpace;
++//			        		
++//			        	}
++//			        	dy=(lineSpace-img.getAbsoluteY())/2;
++//			        	img.setAbsolutePosition(x,y+dy);
++//			        	//System.out.println(img.getScaledWidth());
++//				        document.add(img);
++//			        	x+=img.getScaledWidth()+5;
++//			        	
++//		        	}
++////		        	else if(type.endsWith("enter"))
++//	        		else if(item.getType() == Types.EndofLine)
++//		        	{
++//		        		
++//		        		lineImage.setAbsolutePosition(0,(y - lineImage.getHeight()));
++//				        document.add(lineImage);
++//		        		
++//		        		x=columSpace+tab;
++//		        		y -= (lineSpace);
++//		        	}
++//	        	}
++	        document.close();
++	    }
++	 
++	public void setTitle(float x,float y,LinkedList<EditableCalligraphyItem> charList)throws DocumentException, MalformedURLException, IOException{
++															
++		EditableCalligraphyItem item = null;
++		byte[] array=null;
++		Image img=null;
++		for(int j=0;j<charList.size();j++){
++			item=charList.get(j);
++			array=BitmapHelper.bitmapDecode(item.getCharBitmap());
++			img=Image.getInstance(array);
++			array=null;
++			img.setAbsolutePosition(x,y);
++	        document.add(img);
++        	x+=img.getScaledWidth()+5;
++        	Log.e("TAG", "y" + y);
++		}
++			
++	}
++	
++	public void setDate(float x,float y,LinkedList<EditableCalligraphyItem> charList)throws DocumentException, MalformedURLException, IOException{
++
++		EditableCalligraphyItem item=null;
++		byte[] array=null;
++		Image img=null;
++		for(int j=0;j<charList.size();j++)
++		{
++			item=charList.get(j);
++			array=BitmapHelper.bitmapDecode(item.getCharBitmap());
++			img=Image.getInstance(array);
++			array=null;
++			img.setAbsolutePosition(x, y);
++			document.add(img);
++			x+=img.getScaledWidth()+5;
++			Log.e("TAG", "date:");
++		}
++		
++		
++		
++	}
++	
++	public void setText(float x,float y,LinkedList<EditableCalligraphyItem> charList)throws DocumentException, MalformedURLException, IOException{
++	   
++		EditableCalligraphyItem item = null;
++	    byte[] array = null;
++	    Image img;
++	    //制作下划线
++	    lineImage.scaleAbsoluteWidth(width-2*columSpace);
++	    float ly=y;
++	    while(true)
++	    {
++	    	lineImage.setAbsolutePosition(columSpace, ly-lineImage.getHeight());
++	    	document.add(lineImage);
++	    	ly=ly-(lineImage.getHeight()+lineSpace);
++	    	if(ly<bottomMargin)
++	    	break;
++	    }
++	    //插入字体
++    	for(int j=0;j<charList.size();j++){
++    		item = charList.get(j);
++    		array = BitmapHelper.bitmapDecode(item.getCharBitmap());
++    		if(item.getType() == Types.CharsWithStroke)
++        	{
++	        	img = Image.getInstance(array);
++	        	array = null;
++	        	float dy=0;//调整字体上下位置
++	        	if((x+img.getScaledWidth())>width)
++	        	{
++	        		
++	        		lineImage.setAbsolutePosition(columSpace,(y - lineImage.getHeight()));
++			        document.add(lineImage);
++	        		x=columSpace;
++	        		y=y-lineSpace-lineImage.getHeight();
++	        	}
++	        	if(y<bottomMargin)	
++	        	{
++	        		document.newPage();
++	        		y=PageSize.A4.getHeight()-topMargin;
++	        		x=columSpace;
++	        		
++	        	}
++//	        	dy=(lineSpace-img.getAbsoluteY())/2;
++	        	img.setAbsolutePosition(x,y+dy);
++		        document.add(img);
++	        	x+=img.getScaledWidth()+5;
++	        	Log.e("TAG", "content  y" + y);
++        	}
++    		else if(item.getType() == Types.EndofLine)
++        	{
++        		
++        		lineImage.setAbsolutePosition(columSpace,(y - lineImage.getHeight()));
++		        document.add(lineImage);
++        		
++        		x=columSpace+tab;
++        		y -= (lineSpace+lineImage.getHeight());
++        	}
++    	}
++	}
++}
+diff --git a/src/com/jinke/pdfcreator/ComparatorImg.java b/src/com/jinke/pdfcreator/ComparatorImg.java
+new file mode 100644
+index 0000000..f80cb3a
+--- /dev/null
++++ b/src/com/jinke/pdfcreator/ComparatorImg.java
+@@ -0,0 +1,16 @@
++package com.jinke.pdfcreator;
++import java.util.Comparator;
++
++//list 排序, 重写compare 方法
++public class ComparatorImg implements Comparator{
++	public int compare(Object arg0,Object arg1){
++		Item item1=(Item)arg0;
++		Item item2=(Item)arg1;
++		int index1=item1.getIndex();
++		int index2=item2.getIndex();
++		int flag=index1-index2;
++		return flag;
++	}
++
++
++}
+diff --git a/src/com/jinke/pdfcreator/Item.java b/src/com/jinke/pdfcreator/Item.java
+new file mode 100644
+index 0000000..1622eac
+--- /dev/null
++++ b/src/com/jinke/pdfcreator/Item.java
+@@ -0,0 +1,25 @@
++package com.jinke.pdfcreator;
++
++public class Item {
++	private String name;//文件名
++	private String type;//字体、回车和无法识别的图片  char enter null
++	private int index;//字体的索引
++	public int getIndex() {
++		return index;
++	}
++	public void setIndex(int index) {
++		this.index = index;
++	}
++	public String getName() {
++		return name;
++	}
++	public void setName(String name) {
++		this.name = name;
++	}
++	public String getType() {
++		return type;
++	}
++	public void setType(String type) {
++		this.type = type;
++	}
++}
+diff --git a/src/com/jinke/single/LogUtil.java b/src/com/jinke/single/LogUtil.java
+new file mode 100644
+index 0000000..151cd16
+--- /dev/null
++++ b/src/com/jinke/single/LogUtil.java
+@@ -0,0 +1,36 @@
++package com.jinke.single;
++
++import android.util.Log;
++
++public class LogUtil {
++
++	private boolean logSwitch = true;
++	private static LogUtil logUtil = null;
++	public static LogUtil getInstance(){
++		if(logUtil == null){
++			synchronized (LogUtil.class) {
++				if(logUtil == null){
++					logUtil = new LogUtil();
++				}
++			}
++		}
++		return logUtil;
++	}
++	
++	public void v(String tag,String msg){
++		if(logSwitch)
++			Log.v(tag, msg);
++	}
++	public void e(String tag,String msg){
++		if(logSwitch)
++			Log.e(tag, msg);
++	}
++	public void v(String tag,String msg,Throwable tr){
++		if(logSwitch)
++			Log.v(tag, msg, tr);
++	}
++	public void e(String tag,String msg,Throwable tr){
++		if(logSwitch)
++			Log.e(tag, msg, tr);
++	}
++}
+-- 
+1.7.4.1
+

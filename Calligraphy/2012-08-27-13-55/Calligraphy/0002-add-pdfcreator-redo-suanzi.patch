@@ -1,0 +1,450 @@
+From 70e15fe7fd25adadac7e6c8e746a2a0ec2ecd056 Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Tue, 7 Aug 2012 15:21:57 +0800
+Subject: [PATCH 2/9] add pdfcreator & redo suanzi
+
+---
+ AndroidManifest.xml                                |    3 +-
+ src/com/jinke/calligraphy/activity/Properyt.java   |    2 +
+ .../app/branch/EditableCalligraphy.java            |  259 ++++++++++----------
+ src/com/jinke/calligraphy/app/branch/Start.java    |   62 ++++-
+ .../jinke/calligraphy/app/branch/WorkQueue.java    |    2 +-
+ 5 files changed, 187 insertions(+), 141 deletions(-)
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index c8c2362..ae9d9b6 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -2,7 +2,7 @@
+ <manifest package="com.jinke.calligraphy.app.branch" android:versionCode="81" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.000.201206271339">
+     <uses-sdk android:minSdkVersion="8"/>
+     <application android:icon="@drawable/ccnote" android:label="@string/app_name">
+-        <activity android:name="Start" android:configChanges="orientation|keyboardHidden" android:screenOrientation="portrait" android:label="@string/app_name">
++        <activity android:name=".Start" android:configChanges="orientation|keyboardHidden" android:screenOrientation="portrait" android:label="@string/app_name">
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN"/>
+                 <action android:name="com.jinke.calligraphy.app.branch.action"/>
+@@ -30,6 +30,7 @@
+         <activity android:name="com.jinke.calligraphy.activity.Local"/>
+         <activity android:name="com.jinke.calligraphy.activity.CalligraphyIndex" android:theme="@style/dialog"/>
+         <activity android:name="com.jinke.calligraphy.activity.VideoActivity"/>
++        <activity android:name="com.jinke.pdfcreator.CloudActivity"/>
+     </application>
+     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+     <uses-permission android:name="android.permission.INTERNET"/>
+diff --git a/src/com/jinke/calligraphy/activity/Properyt.java b/src/com/jinke/calligraphy/activity/Properyt.java
+index 956f73b..eb6100e 100644
+--- a/src/com/jinke/calligraphy/activity/Properyt.java
++++ b/src/com/jinke/calligraphy/activity/Properyt.java
+@@ -7,4 +7,6 @@ public interface Properyt {
+ 	public static final String LOCAL_THUMB_PER_PAGE = "LOCAL_THUMB_PER_PAGE";
+ 	public static final int USETHIS = 1;
+ 	
++	public static final int MINDMAP_REQUEST_CODE = 121212;
++	
+ }
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index 5b3ca6e..c5d5219 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -2463,135 +2463,7 @@ public class EditableCalligraphy implements Command{
+ 	
+ 	
+ 	
+-	class resetBitmapWork implements Runnable{
+-		VEditableCalligraphyItem e = null;
+-		String identity = "";
+-		public resetBitmapWork(VEditableCalligraphyItem e, String iden){
+-			this.e = e;
+-			this.identity = iden;
+-//			workList.add(iden);
+-//			WorkQueue.getInstance().addIdentify(iden);
+-		}
+-		
+-		@Override
+-		public boolean equals(Object o) {
+-			// TODO Auto-generated method stub
+-			return identity.equals(((resetBitmapWork)o).identity);
+-		}
+-		
+-		@Override
+-		public void run() {
+-			
+-			execute();
+-		}
+-		
+-		public VEditableCalligraphyItem execute(){
+-
+-			// TODO Auto-generated method stub
+-			
+-			Log.e("workqueue", "resetBitmapWork:" + identity);
+-			
+-			Path mPath = null;
+-			Paint mPaint = new Paint();
+-			
+-			mPaint.setColor(e.getmColor());
+-			mPaint.setStyle(Paint.Style.STROKE);
+-			mPaint.setStrokeWidth(2);
+-			Path tmpPath;
+-			Bitmap tempB;
+-			float Right_X,Left_X,Bottom_Y,Top_Y;
+-			
+-				if(e.type == Types.CharsWithStroke){
+-					Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:" + e.getmPath() + " Bottom_Y:" + e.getBottom_Y());
+-					
+-					tempB = e.charBitmap;
+-					if(tempB != null && !tempB.isRecycled() && tempB != Start.OOM_BITMAP){
+-						e.recycleBitmap();
+-						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy VEditableCalligraphyItem execute tempB");
+-					}
+-					
+-					mPath = e.getmPath();
+-					Right_X = e.getRight_X();
+-					Left_X = e.getLeft_X();
+-					Top_Y = e.getTop_Y();
+-					Bottom_Y = e.getBottom_Y();
+-					
+-					Matrix currentMatrix;
+-					if(Start.c == null)
+-						currentMatrix = Start.m;
+-					else
+-						currentMatrix = Start.c.view.getMMMatrix();
+-					
+-					float[] values = new float[9];
+-					currentMatrix.getValues(values);
+-					
+-					int startx = (int)(Left_X + 1);
+-					int endx = (int)(Right_X + 1);
+-					int starty = (int)(Top_Y + 1);
+-					int endy = (int)(Bottom_Y + 1);
+-					
+-					startx = startx < 0 ? 0 : startx;
+-					starty = starty < 0 ? 0 : starty;
+-					int distX = endx - startx;
+-					int distY = endy - starty;
+-					if(distX <=0 || distY <= 0)
+-						return e;
+-					Log.e("pathscale", "-->distx:" + distX + " distY:" + distY);
+-					
+-					float scale = CalligraphyVectorUtil.getScaled(Right_X - Left_X ,Bottom_Y - Top_Y);
+-					scale *= values[0];
+-					Log.e("cursorScale", "---------scale:" + scale);
+-					float height = Bottom_Y - Top_Y;
+-					
+-					Log.e("vectorScal", "scale:" + values[0]);
+-					Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
+-					tmpPath = new Path(mPath);
+-					Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" );
+-					
+-					Bitmap b;
+-					try {
+-						int sizeX=(int)((endx - startx)*scale);
+-						int sizeY=(int)((endy - starty)*scale);
+-						if(sizeX <0)
+-							sizeX *= -1;
+-						else if(sizeX == 0)
+-							sizeX = 1;
+-						if(sizeY <0)
+-							sizeY *= -1;
+-						else if(sizeY == 0)
+-							sizeY = 1;
+-						b = Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_4444);
+-						BitmapCount.getInstance().createBitmap("EditableCalligraphy VEditableCalligraphyItem excute");
+-						
+-						b.eraseColor(Color.TRANSPARENT);
+-						Canvas mc = new Canvas();
+-						mc.setBitmap(b);
+-						
+-						Matrix scaleMatrix = new Matrix();
+-						scaleMatrix.setScale(scale, scale);
+-						tmpPath.offset(-Left_X, -Top_Y);
+-						tmpPath.transform(scaleMatrix);
+-						
+-						mc.drawPath(tmpPath, mPaint);
+-						
+-						tmpPath.reset();
+-						
+-					} catch (OutOfMemoryError e) {
+-						// TODO: handle exception
+-						b = Start.OOM_BITMAP;
+-					}
+-					
+-					
+-					e.charBitmap = b;
+-					e.resetWidthHeight();
+-					e.setMatrix(currentMatrix);
+-					
+-				}
+-				Log.e("sharerecycle", "execute recycled" + e.charBitmap.isRecycled());
+-				return e;
+-		}
+-		
+-	};
++	
+ 	
+ 	class resetImageWork implements Runnable{
+ 		EditableCalligraphyItem e = null;
+@@ -3149,3 +3021,132 @@ public class EditableCalligraphy implements Command{
+ 		return null;
+ 	}
+ }
++class resetBitmapWork implements Runnable{
++	VEditableCalligraphyItem e = null;
++	String identity = "";
++	public resetBitmapWork(VEditableCalligraphyItem e, String iden){
++		this.e = e;
++		this.identity = iden;
++//		workList.add(iden);
++//		WorkQueue.getInstance().addIdentify(iden);
++	}
++	
++	@Override
++	public boolean equals(Object o) {
++		// TODO Auto-generated method stub
++		return identity.equals(((resetBitmapWork)o).identity);
++	}
++	
++	@Override
++	public void run() {
++		
++		execute();
++	}
++	
++	public VEditableCalligraphyItem execute(){
++
++		// TODO Auto-generated method stub
++		
++		Log.e("workqueue", "resetBitmapWork:" + identity);
++		
++		Path mPath = null;
++		Paint mPaint = new Paint();
++		
++		mPaint.setColor(e.getmColor());
++		mPaint.setStyle(Paint.Style.STROKE);
++		mPaint.setStrokeWidth(2);
++		Path tmpPath;
++		Bitmap tempB;
++		float Right_X,Left_X,Bottom_Y,Top_Y;
++		
++			if(e.type == Types.CharsWithStroke){
++				Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:" + e.getmPath() + " Bottom_Y:" + e.getBottom_Y());
++				
++				tempB = e.charBitmap;
++				if(tempB != null && !tempB.isRecycled() && tempB != Start.OOM_BITMAP){
++					e.recycleBitmap();
++					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy VEditableCalligraphyItem execute tempB");
++				}
++				
++				mPath = e.getmPath();
++				Right_X = e.getRight_X();
++				Left_X = e.getLeft_X();
++				Top_Y = e.getTop_Y();
++				Bottom_Y = e.getBottom_Y();
++				
++				Matrix currentMatrix;
++				if(Start.c == null)
++					currentMatrix = Start.m;
++				else
++					currentMatrix = Start.c.view.getMMMatrix();
++				
++				float[] values = new float[9];
++				currentMatrix.getValues(values);
++				
++				int startx = (int)(Left_X + 1);
++				int endx = (int)(Right_X + 1);
++				int starty = (int)(Top_Y + 1);
++				int endy = (int)(Bottom_Y + 1);
++				
++				startx = startx < 0 ? 0 : startx;
++				starty = starty < 0 ? 0 : starty;
++				int distX = endx - startx;
++				int distY = endy - starty;
++				if(distX <=0 || distY <= 0)
++					return e;
++				Log.e("pathscale", "-->distx:" + distX + " distY:" + distY);
++				
++				float scale = CalligraphyVectorUtil.getScaled(Right_X - Left_X ,Bottom_Y - Top_Y);
++				scale *= values[0];
++				Log.e("cursorScale", "---------scale:" + scale);
++				float height = Bottom_Y - Top_Y;
++				
++				Log.e("vectorScal", "scale:" + values[0]);
++				Log.e("", "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
++				tmpPath = new Path(mPath);
++				Log.e("", "End create Bitmap:>>>>>>>>>>>>>>" );
++				
++				Bitmap b;
++				try {
++					int sizeX=(int)((endx - startx)*scale);
++					int sizeY=(int)((endy - starty)*scale);
++					if(sizeX <0)
++						sizeX *= -1;
++					else if(sizeX == 0)
++						sizeX = 1;
++					if(sizeY <0)
++						sizeY *= -1;
++					else if(sizeY == 0)
++						sizeY = 1;
++					b = Bitmap.createBitmap(sizeX, sizeY, Bitmap.Config.ARGB_4444);
++					BitmapCount.getInstance().createBitmap("EditableCalligraphy VEditableCalligraphyItem excute");
++					
++					b.eraseColor(Color.TRANSPARENT);
++					Canvas mc = new Canvas();
++					mc.setBitmap(b);
++					
++					Matrix scaleMatrix = new Matrix();
++					scaleMatrix.setScale(scale, scale);
++					tmpPath.offset(-Left_X, -Top_Y);
++					tmpPath.transform(scaleMatrix);
++					
++					mc.drawPath(tmpPath, mPaint);
++					
++					tmpPath.reset();
++					
++				} catch (OutOfMemoryError e) {
++					// TODO: handle exception
++					b = Start.OOM_BITMAP;
++				}
++				
++				
++				e.charBitmap = b;
++				e.resetWidthHeight();
++				e.setMatrix(currentMatrix);
++				
++			}
++			Log.e("sharerecycle", "execute recycled" + e.charBitmap.isRecycled());
++			return e;
++	}
++	
++}
+diff --git a/src/com/jinke/calligraphy/app/branch/Start.java b/src/com/jinke/calligraphy/app/branch/Start.java
+index c66a9ed..1e21468 100644
+--- a/src/com/jinke/calligraphy/app/branch/Start.java
++++ b/src/com/jinke/calligraphy/app/branch/Start.java
+@@ -54,6 +54,7 @@ import android.widget.Toast;
+ 
+ import com.jinke.calligraphy.activity.DownloadProgressActivity;
+ import com.jinke.calligraphy.activity.MainTab;
++import com.jinke.calligraphy.activity.Properyt;
+ import com.jinke.calligraphy.backup.BackupFromFile;
+ import com.jinke.calligraphy.backup.CalligraphyBackupUtil;
+ import com.jinke.calligraphy.command.BackupCommand;
+@@ -70,6 +71,7 @@ import com.jinke.kanbox.DownloadAllFileThread;
+ import com.jinke.kanbox.DownloadEntity;
+ import com.jinke.mywidget.FileListDialog;
+ import com.jinke.pdf.BitmapToFile;
++import com.jinke.pdfcreator.CloudActivity;
+ import com.jinke.rloginservice.IReadingsLoginService;
+ import com.jinke.rloginservice.UserInfo;
+ import com.jinke.single.BitmapCount;
+@@ -181,7 +183,22 @@ public class Start extends Activity{
+ 			}
+ 			return true;
+ 		}
+-		
++		if(keyCode == KeyEvent.KEYCODE_5){
++			Log.e("KeyCode", "1 black");
++			c.view.colorChanged(Color.BLACK);
++		}
++		if(keyCode == KeyEvent.KEYCODE_0){
++			Log.e("KeyCode", "2 red");
++			c.view.colorChanged(Color.RED);
++		}
++		if(keyCode == KeyEvent.KEYCODE_4){
++			Log.e("KeyCode", "3 blue");
++			c.view.colorChanged(Color.BLUE);
++		}
++		if(keyCode == KeyEvent.KEYCODE_1){
++			Log.e("KeyCode", "4 green");
++			c.view.colorChanged(Color.GREEN);
++		}
+ 		return super.onKeyDown(keyCode, event);
+ 	}
+ 	
+@@ -775,6 +792,12 @@ public class Start extends Activity{
+ 				android.R.drawable.ic_menu_info_details);
+ 		menu.add(Menu.NONE, Menu.FIRST + 6, 6, "添加日程").setIcon(
+ 				android.R.drawable.ic_menu_send);
++		
++//		menu.add(Menu.NONE, Menu.FIRST + 7, 7, "生成pdf到本地").setIcon(
++//				android.R.drawable.ic_menu_send);
++		menu.add(Menu.NONE, Menu.FIRST + 8, 8, "制作添加翰林算子").setIcon(
++				android.R.drawable.ic_menu_send);
++		
+ 
+ //		menu.add(Menu.NONE, Menu.FIRST + 7, 7, "改变刷新限制,当前:" + limit_num).setIcon(
+ //				android.R.drawable.ic_menu_send);
+@@ -824,6 +847,8 @@ public class Start extends Activity{
+ 
+ //			CalligraphyDB.getInstance(Start.context).getCurrentWordCount(5, 3);
+ //			BitmapToFile.savaBitmap();
++			
++			
+ 			break;
+ 		case Menu.FIRST + 3:
+ 
+@@ -912,15 +937,22 @@ public class Start extends Activity{
+ 			showDialog(DATETIMESELECTOR_ID);
+ 
+ 			break;
+-//		case Menu.FIRST + 7:
+-//
+-//			if(limit_num < 10)
+-//				limit_num ++;
+-//			else if(limit_num == 10)
+-//				limit_num = 5;
+-//
+-//			System.out.println(limit_num);
+-//			break;
++			
++		case Menu.FIRST + 7:
++
++            Intent pdfIntent = new Intent();
++            pdfIntent.setClass(this, CloudActivity.class);
++            startActivity(pdfIntent);
++            break;
++		case Menu.FIRST + 8:
++			Intent mIntent = new Intent();
++			ComponentName comp = new ComponentName(
++		                         "com.studio.mindo",
++		                         "com.studio.mindo.MindoTestActivity");
++			mIntent.setComponent(comp);
++			mIntent.setAction("android.intent.action.VIEW");
++			startActivityForResult(mIntent, Properyt.MINDMAP_REQUEST_CODE);
++			break;
+ 		}
+ 
+ 		return false;
+@@ -1384,6 +1416,16 @@ public class Start extends Activity{
+ 		}
+ 		else if(requestCode == 10){
+ 			c.restartGetIP();
++		}else if(requestCode == Properyt.MINDMAP_REQUEST_CODE){
++			if(resultCode == RESULT_OK){
++				Log.e("mindmap", "uri:" + data.getData().toString());
++				// 拷到资源文件夹
++				Uri uri = data.getData();
++				uri = c.view.savePicBitmap(uri,null);
++				createAndSavePic(uri);
++			}else{
++				Log.e("mindmap", "mind map result error");
++			}
+ 		}
+ 		
+ 		
+diff --git a/src/com/jinke/calligraphy/app/branch/WorkQueue.java b/src/com/jinke/calligraphy/app/branch/WorkQueue.java
+index 6b08f81..170db17 100644
+--- a/src/com/jinke/calligraphy/app/branch/WorkQueue.java
++++ b/src/com/jinke/calligraphy/app/branch/WorkQueue.java
+@@ -8,7 +8,7 @@ import android.util.Log;
+ 
+ public class WorkQueue {
+ 
+-	private final static int nThreads = 3;
++	private final static int nThreads = 4;
+ 	private  static int QUEUE_SIZE = 300;
+ 	private static int IMAGE_QUEUE_SIZE = 2;
+ 	private final Thread[] threads;
+-- 
+1.7.4.1
+

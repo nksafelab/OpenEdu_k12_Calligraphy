@@ -1,0 +1,536 @@
+From 4ac494add111469a9b1473cafa17d621b5a4cf3a Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Wed, 8 Aug 2012 18:46:07 +0800
+Subject: [PATCH 4/9] finish arrow drawer
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+安装到4.0版本，需要打开Start onCreate中：
+//getWindow().getDecorView().setSystemUiVisibility
+同时，修改minVersion = 11
+---
+ AndroidManifest.xml                                |   13 ++-
+ src/com/jinke/calligraphy/activity/Properyt.java   |    1 +
+ .../jinke/calligraphy/app/branch/Calligraph.java   |   27 +-----
+ .../app/branch/EditableCalligraphy.java            |   73 ++++++++++++++-
+ .../app/branch/EditableCalligraphyItem.java        |   10 ++
+ src/com/jinke/calligraphy/app/branch/Start.java    |   11 ++-
+ .../jinke/calligraphy/touchmode/HandWriteMode.java |  100 ++++++++++++++++++--
+ .../jinke/calligraphy/touchmode/SideDownMode.java  |   30 ++++--
+ 8 files changed, 216 insertions(+), 49 deletions(-)
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index ae9d9b6..3a5ac23 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -1,11 +1,16 @@
+ <?xml version='1.0' encoding='utf-8'?>
+ <manifest package="com.jinke.calligraphy.app.branch" android:versionCode="81" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.000.201206271339">
+-    <uses-sdk android:minSdkVersion="8"/>
+-    <application android:icon="@drawable/ccnote" android:label="@string/app_name">
+-        <activity android:name=".Start" android:configChanges="orientation|keyboardHidden" android:screenOrientation="portrait" android:label="@string/app_name">
++    <uses-sdk android:minSdkVersion="10"/>
++    <application android:icon="@drawable/ccnote" android:label="@string/app_name"
++        >
++        <activity android:name=".Start" 
++            android:configChanges="orientation|keyboardHidden" 
++            android:screenOrientation="portrait" 
++            android:label="@string/app_name"
++            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
++            >
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN"/>
+-                <action android:name="com.jinke.calligraphy.app.branch.action"/>
+                  <category android:name="android.intent.category.DEFAULT" /><!--必须，否则无效-->
+                 <category android:name="android.intent.category.LAUNCHER"/>
+             </intent-filter>
+diff --git a/src/com/jinke/calligraphy/activity/Properyt.java b/src/com/jinke/calligraphy/activity/Properyt.java
+index eb6100e..ac1956a 100644
+--- a/src/com/jinke/calligraphy/activity/Properyt.java
++++ b/src/com/jinke/calligraphy/activity/Properyt.java
+@@ -9,4 +9,5 @@ public interface Properyt {
+ 	
+ 	public static final int MINDMAP_REQUEST_CODE = 121212;
+ 	
++	public static final int ARROW_FLIP = 50;
+ }
+diff --git a/src/com/jinke/calligraphy/app/branch/Calligraph.java b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+index 36ed66b..73fb209 100755
+--- a/src/com/jinke/calligraphy/app/branch/Calligraph.java
++++ b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+@@ -793,27 +793,7 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 					Log.i(TAG, "handwrite new undo");
+ 					int len = undoList.size();
+ 					if(len > 0) {
+-/*						
+-//						path = WolfTemplateUtil.TEMPLATE_PATH + mTemplate.getName()+"/"+mTemplate.getBackground();
+-						/*bgPath = WolfTemplateUtil.getTemplateBgPath();
+-						
+-						Canvas canvass = new Canvas();
+-						canvass.setBitmap(mBitmap);
+-							System.out.println("picPath```````````````"+bgPath);
+-//							Bitmap bgBitmap = BitmapFactory.decodeFile(bgPath);
+-							Bitmap bgBitmap = null;
+-							try {
+-								bgBitmap = BitmapFactory.decodeFile(bgPath);
+-								canvass.drawBitmap(bgBitmap, Start.SCREEN_WIDTH, 0, mPaint);
+-								bgBitmap.recycle();
+-							} catch (Exception e) {
+-								// TODO: handle exception
+-								Log.e("AndroidRuntime", "Calligraph mHandWriteUndoBtn OOM!!!");
+-							}*/
+-							
+-						
+ 						undoList.get(len - 1).undo(mBitmap);
+-						
+ 						undoList.remove(len -1);
+ 						view.cursorBitmap.updateHandwriteState();//将刷新图片的工作交给图片的持有者来做
+ 						Start.status.modified("undo");
+@@ -1890,9 +1870,12 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 		 
+ 		 public void closeADHoc(){
+ 			 Log.e("adhoc", " call closeAdhoc");	
+-			 send3PhotoShare();
+-			 Log.e("adhoc", "closeAdhoc netStatus " + (Start.netStatus));	 
++				 
+ 			 if(Start.ADHOC.equals(Start.netStatus)){
++				 
++				 send3PhotoShare();
++				 Log.e("adhoc", "closeAdhoc netStatus " + (Start.netStatus));
++				 
+ 				 Log.e("adhoc", "closeAdhoc jni " + (jni == null));
+ 				 if(jni != null){
+ 					 jni.closeAdhoc();//可以改放到用wifi网络时再关闭
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index d347680..feaf4f7 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -939,7 +939,7 @@ public class EditableCalligraphy implements Command{
+ 	float scale;
+ 	float recycle_line = 0;
+ 	float recycle_bottom_line = 850;
+-	
++	int lastLineStartID = 0;
+ 	boolean recycleable;
+ 	int recycle_lastIndex = 0;
+ 	int recycle_firstIndex = 10000;
+@@ -1053,11 +1053,16 @@ public class EditableCalligraphy implements Command{
+ 			if(e.getWidth()  > end_x - x && x != start_x){
+ 				if(available.getLinenumber() != 1){
+ 					x = start_x;
+-//					Log.e("EndofLine", "y:" + y);
++//					Log.e("EndofLine", "y:" + y); 
+ 					y += maxHeight;
+-					
+ 					maxHeight=0;
+ 					mv.addRowNumber(available.getControltype());
++					
++					//记录到光标为止，行首字的id
++					if(i <= this.currentpos){
++						lastLineStartID = i + 1;
++					}
++					
+ 				}else{
+ 					continue;
+ 				}
+@@ -1090,6 +1095,11 @@ public class EditableCalligraphy implements Command{
+ 				y += maxHeight;
+ 				maxHeight=0;
+ 				mv.addRowNumber(available.getControltype());
++				
++				//记录到光标为止，行首字的id
++				if(i <= this.currentpos){
++					lastLineStartID = i + 1;
++				}
+ 				continue;
+ 			}
+ 			
+@@ -1240,8 +1250,14 @@ public class EditableCalligraphy implements Command{
+ //									Log.e("recycle", "identify add queue:" + iden);
+ //								}
+ 								c.drawBitmap(Start.EMPTY_BITMAP, mm, p);
+-							}else
++							}else{
+ 								c.drawBitmap(tmp, mm, p);
++								if(e.isSpecial()){
++									int wordHeight = tmp.getHeight();
++									mm.postTranslate(0, wordHeight);
++									c.drawBitmap(Start.BUTTOM_LINE_BITMAP, mm, p);
++								}
++							}
+ 						}
+ 				
+ //			}//end null if
+@@ -3020,6 +3036,55 @@ public class EditableCalligraphy implements Command{
+ 		}
+ 		return null;
+ 	}
++	
++	
++	public EditableCalligraphyItem isMindmap(float x,float y){
++
++		x -= bitmapOffsetX;
++		y -= bitmapOffsetY;
++		
++		Log.v("CurrentPos", "setCurrentPos x:"+ x +" y:"+y);
++		int i =0;
++		float initScale = 0;
++		float[] eValues = new float[9];
++		
++		Rect r;
++		for( i =0 ; i< charList.size(); i++){
++			EditableCalligraphyItem e = charList.get(i);
++			if(!e.isSpecial()){
++				continue;
++			}
++			
++			if(e.getCurPosX() > 900){
++				Log.e("ispic", "pic out of screen");
++				break;
++			}
++			
++			e.getMatrix().getValues(eValues);
++			initScale = eValues[0];
++			
++			r = new Rect(
++					e.getCurPosX() ,
++					e.getCurPosY()- flip_dst - cursorMargin,
++					(int)(e.getCurPosX()+ e.getWidth() + HMargin),
++					(int)(e.getCurPosY()+ e.getHeight()  + VMargin*scale - flip_dst) + cursorMargin);
++			if(r.contains((int)x, (int)y)){
++				return e;
++			}
++		}
++		return null;
++	}
++	
++	
++	public boolean setSpecial(){
++		if(lastLineStartID != 0  && lastLineStartID < charList.size()){
++			for(int i=lastLineStartID;i<this.currentpos;i++){
++				charList.get(i).setSpecial();
++			}
++		}
++		
++		return true;
++	}
+ }
+ class resetBitmapWork implements Runnable{
+ 	VEditableCalligraphyItem e = null;
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
+index 9e50615..42b02d4 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
+@@ -43,6 +43,16 @@ public class EditableCalligraphyItem implements Serializable{
+ 	private Bitmap playingBitmap;
+ 	private Bitmap stopBitmap;
+ 	
++	private boolean isSpecial = true;
++	
++	public boolean isSpecial(){
++		return isSpecial;
++	}
++	public void setSpecial(){
++		isSpecial = true;
++	}
++	
++	
+ 	public ItemStatus getStatus(){
+ 		return itemStatus;
+ 	}
+diff --git a/src/com/jinke/calligraphy/app/branch/Start.java b/src/com/jinke/calligraphy/app/branch/Start.java
+index ce32e70..b1bc9ac 100644
+--- a/src/com/jinke/calligraphy/app/branch/Start.java
++++ b/src/com/jinke/calligraphy/app/branch/Start.java
+@@ -92,6 +92,10 @@ public class Start extends Activity{
+ 	public static EditStatus status;
+ 	public static Bitmap OOM_BITMAP;
+ 	public static Bitmap EMPTY_BITMAP;
++	public static Bitmap BUTTOM_LINE_BITMAP;
++	public static Bitmap RED_ARROW_BITMAP;
++	public static Bitmap BLACK_ARROW_BITMAP;
++	
+ 	public static String storagePath = "";
+ 	static ProgressBar bar;
+ 	public static TextView barText;
+@@ -546,6 +550,8 @@ public class Start extends Activity{
+ 		super.onCreate(savedInstanceState);
+ 		Log.e("Start", "!!!!!!!!!!!!!onCreate");
+ 		
++//		getWindow().getDecorView().setSystemUiVisibility
++//		  (View.SYSTEM_UI_FLAG_LOW_PROFILE); 
+ 		
+ 		inkSpreadDialog = new InkSpreadDialog(this);
+ 		//start thread to sync Databases and file dir
+@@ -590,7 +596,10 @@ public class Start extends Activity{
+ 		
+ 		OOM_BITMAP = readBitMap(context, R.drawable.oom);
+ 		EMPTY_BITMAP = readBitMap(context, R.drawable.empty_word);
+-
++		BUTTOM_LINE_BITMAP = readBitMap(context, R.drawable.buttomline);
++		RED_ARROW_BITMAP = readBitMap(context, R.drawable.red_jiantou);
++		BLACK_ARROW_BITMAP = readBitMap(context, R.drawable.black_jiantou);
++		
+ 		Intent alarmIntent = getIntent();
+ 		int alarmPagenum = -1;
+ 		if (alarmIntent != null) {
+diff --git a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+index 21e58a1..d24ca2c 100644
+--- a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
++++ b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+@@ -2,14 +2,23 @@ package com.jinke.calligraphy.touchmode;
+ 
+ import android.graphics.Canvas;
+ import android.graphics.Matrix;
++import android.graphics.Paint;
+ import android.util.Log;
+ import android.view.MotionEvent;
+ import android.view.ViewConfiguration;
+ 
++import com.jinke.calligraphy.activity.Properyt;
+ import com.jinke.calligraphy.app.branch.EditableCalligraphy;
+ import com.jinke.calligraphy.app.branch.EditableCalligraphyItem;
+ import com.jinke.calligraphy.app.branch.MyView;
+ import com.jinke.calligraphy.app.branch.Start;
++import com.jinke.mindmap.ArrowDrawer;
++import com.jinke.mindmap.DownArrowDrawer;
++import com.jinke.mindmap.LeftArrowDrawer;
++import com.jinke.mindmap.MathUtil;
++import com.jinke.mindmap.MathUtil.DIRECTION;
++import com.jinke.mindmap.RightArrowDrawer;
++import com.jinke.mindmap.UpArrowDrawer;
+ 
+ public class HandWriteMode implements TouchMode{
+ 
+@@ -26,6 +35,27 @@ public class HandWriteMode implements TouchMode{
+ 	private EditableCalligraphyItem picItem = null;
+ 	private boolean isPicPress;
+ 	
++	private EditableCalligraphyItem mindItem = null;
++	private boolean isMindmapPress;
++	private boolean drawArrow = false;
++	
++	
++	
++	//arrow draw
++	private ArrowDrawer arrowDrawer = null;
++	private UpArrowDrawer upArrowDrawer;
++	private DownArrowDrawer downArrowDrawer;
++	private LeftArrowDrawer leftArrowDrawer;
++	private RightArrowDrawer rightArrowDrawer;
++	
++	public void initArrowDrawer(){
++		upArrowDrawer = new UpArrowDrawer();
++		downArrowDrawer = new DownArrowDrawer();
++		leftArrowDrawer = new LeftArrowDrawer();
++		rightArrowDrawer = new RightArrowDrawer();
++		
++		arrowDrawer = upArrowDrawer;
++	}
+ 	public void setsMatrix(Matrix sMatrix) {
+ 		this.sMatrix = sMatrix;
+ //		Log.e("vector", "handwriteMode:   matrix:" + (sMatrix == null));
+@@ -39,6 +69,7 @@ public class HandWriteMode implements TouchMode{
+ 
+ 	public HandWriteMode(MyView view) {
+ 		this.view = view;
++		initArrowDrawer();
+ 		mLongPressRunnable = new Runnable() {
+ 			
+ 			@Override
+@@ -56,9 +87,15 @@ public class HandWriteMode implements TouchMode{
+ 	protected void longPressed() {
+ 		// TODO Auto-generated method stub
+ 		Log.e("long", "long press !@!!!!!!!!!!!!!!!");
+-		view.setTouchMode(view.getImageSlideMode());
+-		((ImageSlideMode)view.getImageSlideMode()).setStartPoint(mLastMotionX, mLastMotionY);
+-		((ImageSlideMode)view.getImageSlideMode()).setPicItem(picItem);
++		if(isPicPress){
++			view.setTouchMode(view.getImageSlideMode());
++			((ImageSlideMode)view.getImageSlideMode()).setStartPoint(mLastMotionX, mLastMotionY);
++			((ImageSlideMode)view.getImageSlideMode()).setPicItem(picItem);
++		}
++		else if(isMindmapPress){
++			drawArrow = true;
++			view.invalidate();
++		}
+ 	}
+ 
+ 	@Override
+@@ -70,6 +107,9 @@ public class HandWriteMode implements TouchMode{
+ 			view.setTouchMode(view.getSideDownMode());
+ 			view.getTouchMode().touch_action_down(event);
+     	} else{
++    		/*
++    		 * 此处每次书写都会检测是否是图片长按，是否是翰林算子长按；可优化；
++    		 */
+     		isPicture(event);
+     		if(isPicPress){
+ 	    		mLastMotionX = x;
+@@ -78,11 +118,32 @@ public class HandWriteMode implements TouchMode{
+ 	    		isReleased = false;
+ 	    		isMoved = false;
+ 	    		view.postDelayed(mLongPressRunnable, ViewConfiguration.getLongPressTimeout());
++    		}else{
++    			if(isMindmap(event)){
++    				mLastMotionX = x;
++    	    		mLastMotionY = y;
++    	    		mCounter ++;
++    	    		isReleased = false;
++    	    		isMoved = false;
++    	    		view.postDelayed(mLongPressRunnable, ViewConfiguration.getLongPressTimeout());
++    			}
+     		}
+     		view.baseImpl.start(event.getX(), event.getY());
+     	}
+ 	}
+ 
++	private boolean isMindmap(MotionEvent event) {
++		// TODO Auto-generated method stub
++		EditableCalligraphy currentCalligraphy = view.cursorBitmap.listEditableCalligraphy.get(3);
++		mindItem = currentCalligraphy.isMindmap(event.getX(), event.getY());
++		if(mindItem == null){
++			isMindmapPress = false;
++		}else{
++			isMindmapPress = true;
++		}
++		return isMindmapPress;
++	}
++
+ 	@Override
+ 	public void touch_action_pointer_down(MotionEvent event) {
+ 		// TODO Auto-generated method stub
+@@ -109,7 +170,22 @@ public class HandWriteMode implements TouchMode{
+ 				}
+ 			}
+ 		}
+-		view.baseImpl.makeNextPoint(event.getX(), event.getY());
++		if(isMindmapPress){
++			DIRECTION direction = 
++				MathUtil.getAngle((double)mLastMotionX, (double)mLastMotionY, (double)event.getX(), (double)event.getY());
++			if(direction == DIRECTION.UP){
++				arrowDrawer = upArrowDrawer;
++			}else if(direction == DIRECTION.RIGHT){
++				arrowDrawer = rightArrowDrawer;
++			}else if(direction == DIRECTION.DOWN){
++				arrowDrawer = downArrowDrawer;
++			}else{
++				arrowDrawer = leftArrowDrawer;
++			}
++			
++		}else{
++			view.baseImpl.makeNextPoint(event.getX(), event.getY());
++		}
+ 	}
+ 
+ 	@Override
+@@ -117,15 +193,24 @@ public class HandWriteMode implements TouchMode{
+ 		// TODO Auto-generated method stub
+ 		if(isPicPress)
+ 			isReleased = true;
+-		view.baseImpl.after();
++		
++		if(isMindmapPress){
++			isMindmapPress = false;
++			drawArrow = false;
++		}else{
++			view.baseImpl.after();
++		}
+ 	}
+ 
+ 	@Override
+ 	public void draw(Canvas canvas) {
+ 		// TODO Auto-generated method stub
+-//		Log.i(TAG, "draw");
+ 		view.baseImpl.draw(canvas, sMatrix);
+-//		Log.e("vector", "handwriteMode:   matrix:" + (sMatrix == null));
++		
++		if(drawArrow){
++			arrowDrawer.doDraw(canvas,mLastMotionX,mLastMotionY);
++		}
++		
+ 	}
+ 	
+ 	public boolean checkRight(float x, float y) {
+@@ -162,5 +247,6 @@ public class HandWriteMode implements TouchMode{
+ 		}
+ 	}
+ 
++	
+ 
+ }
+diff --git a/src/com/jinke/calligraphy/touchmode/SideDownMode.java b/src/com/jinke/calligraphy/touchmode/SideDownMode.java
+index 520623f..a86ab85 100644
+--- a/src/com/jinke/calligraphy/touchmode/SideDownMode.java
++++ b/src/com/jinke/calligraphy/touchmode/SideDownMode.java
+@@ -1,16 +1,12 @@
+ package com.jinke.calligraphy.touchmode;
+ 
+ import java.io.IOException;
+-import java.lang.reflect.Array;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.List;
+ 
+-import android.app.AlertDialog;
+ import android.content.Context;
+-import android.content.DialogInterface;
+ import android.content.Intent;
+-import android.graphics.Bitmap;
+ import android.graphics.BitmapFactory;
+ import android.graphics.Canvas;
+ import android.graphics.Color;
+@@ -21,10 +17,10 @@ import android.graphics.Paint;
+ import android.graphics.Path;
+ import android.graphics.PointF;
+ import android.graphics.Rect;
+-import android.graphics.Region;
+ import android.graphics.drawable.GradientDrawable;
+ import android.media.AudioManager;
+ import android.media.MediaPlayer;
++import android.net.Uri;
+ import android.util.Log;
+ import android.view.MotionEvent;
+ import android.view.View;
+@@ -38,11 +34,6 @@ import com.jinke.calligraphy.app.branch.ColorPickerDialog;
+ import com.jinke.calligraphy.app.branch.MyView;
+ import com.jinke.calligraphy.app.branch.R;
+ import com.jinke.calligraphy.app.branch.Start;
+-import com.jinke.calligraphy.backup.UploadToServer;
+-import com.jinke.calligraphy.command.UploadCommand;
+-import com.jinke.calligraphy.database.CDBPersistent;
+-import com.jinke.calligraphy.fliplayout.PicActivity;
+-import com.jinke.calligraphy.template.WolfTemplate;
+ import com.jinke.calligraphy.template.WolfTemplateUtil;
+ import com.jinke.single.BitmapCount;
+ 
+@@ -320,7 +311,24 @@ public class SideDownMode implements TouchMode{
+ 		am = (AudioManager)Start.instance.getSystemService(Context.AUDIO_SERVICE);
+ 		maxVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+ 		//MediaPlayer初始化
+-		player = MediaPlayer.create(Start.context, R.raw.pagesound);
++		Uri uri = Uri.parse("file:///android_asset/pagesound.mp3");
++//		player = MediaPlayer.create(Start.context, R.raw.pagesound);
++		player = new MediaPlayer();
++		try {
++			player.setDataSource(Start.context, uri);
++		} catch (IllegalArgumentException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		} catch (SecurityException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		} catch (IllegalStateException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		} catch (IOException e) {
++			// TODO Auto-generated catch block
++			e.printStackTrace();
++		}
+ 		player.setLooping(false);
+ 		
+ 		musicPlayer = new MusicPlayer(player);
+-- 
+1.7.4.1
+

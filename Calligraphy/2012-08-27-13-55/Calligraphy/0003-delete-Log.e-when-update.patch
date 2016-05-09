@@ -1,0 +1,513 @@
+From 602fcad3955f87d7aa7bf83dc72120b477092274 Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Tue, 7 Aug 2012 16:30:04 +0800
+Subject: [PATCH 3/9] delete Log.e when update
+
+---
+ .../app/branch/EditableCalligraphy.java            |   96 ++++++++++----------
+ src/com/jinke/calligraphy/app/branch/Start.java    |   34 ++++----
+ .../jinke/calligraphy/app/branch/WorkQueue.java    |   22 +++---
+ src/com/jinke/mywidget/FlipImageView.java          |   14 ++--
+ src/com/jinke/single/BitmapCount.java              |    6 +-
+ 5 files changed, 86 insertions(+), 86 deletions(-)
+
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index c5d5219..d347680 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -116,7 +116,7 @@ public class EditableCalligraphy implements Command{
+ 		flip_dst = (int) ((bottomY - FLIPSTART_LIMIT_BOTTOM) * scale);
+ 		if(flip_dst <0)
+ 			flip_dst = 0;
+-		Log.e("flipset", "flip_dst:" + flip_dst);
++//		Log.e("flipset", "flip_dst:" + flip_dst);
+ 	}
+ 	
+ 	
+@@ -165,7 +165,7 @@ public class EditableCalligraphy implements Command{
+ 			setFlipDst_vertical();
+ 			return;
+ 		}
+-			Log.e("cursorButtom", "setFlipDst bottomy called from " + where + " cursor_y:" + cursor_y);
++//			Log.e("cursorButtom", "setFlipDst bottomy called from " + where + " cursor_y:" + cursor_y);
+ 			
+ 			if(bottomY > FLIPSTART_LIMIT_BOTTOM  && 
+ 					(cursor_y-flip_dst > FLIPSTART_LIMIT_BOTTOM || cursor_y-flip_dst < 0)){
+@@ -200,7 +200,7 @@ public class EditableCalligraphy implements Command{
+ //				Calligraph.flipblockLayout.setLayout(t);
+ 				Calligraph.flipblockBtn.setVisibility(View.INVISIBLE);
+ 				Start.c.TestButton.setVisibility(View.INVISIBLE);
+-				Log.e("bottomy", "setFlip INVISIBLE bottomy:" + bottomY);
++//				Log.e("bottomy", "setFlip INVISIBLE bottomy:" + bottomY);
+ //				if(flag ){
+ //					WorkQueue.getInstance().endFlipping();
+ //				}
+@@ -964,7 +964,7 @@ public class EditableCalligraphy implements Command{
+ 		
+ 		
+ 		
+-		Log.e("saveTimer", "cancel");
++//		Log.e("saveTimer", "cancel");
+ //		Start.saveHandler.removeMessages(1);
+ //		Start.saveHandler.sendEmptyMessageDelayed(1, 15000);
+ //		Start.kanboxUploadHandler.removeMessages(1);
+@@ -1043,7 +1043,7 @@ public class EditableCalligraphy implements Command{
+ 			}
+ 			
+ 			tt = values[0];//字体生成时的缩放比例
+-			Log.e("wordmatrix", "itemid:" + i + "tt" + tt);
++//			Log.e("wordmatrix", "itemid:" + i + "tt" + tt);
+ 			
+ 			if(maxHeight < (linespace + VMargin)*scale){
+ 				maxHeight = (linespace + VMargin)*scale;
+@@ -1053,7 +1053,7 @@ public class EditableCalligraphy implements Command{
+ 			if(e.getWidth()  > end_x - x && x != start_x){
+ 				if(available.getLinenumber() != 1){
+ 					x = start_x;
+-					Log.e("EndofLine", "y:" + y);
++//					Log.e("EndofLine", "y:" + y);
+ 					y += maxHeight;
+ 					
+ 					maxHeight=0;
+@@ -2358,10 +2358,10 @@ public class EditableCalligraphy implements Command{
+ 		Bitmap tempB;
+ 		float Right_X,Left_X,Bottom_Y,Top_Y;
+ 		for(int i=item_start;i<item_end;i++){
+-			Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:"+ charList.get(i).type);
++//			Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:"+ charList.get(i).type);
+ 			if(charList.get(i).type == Types.CharsWithStroke){
+ 				vitem = (VEditableCalligraphyItem)charList.get(i);
+-				Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:" + vitem.getmPath() + " Bottom_Y:" + vitem.getBottom_Y());
++//				Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:" + vitem.getmPath() + " Bottom_Y:" + vitem.getBottom_Y());
+ 				
+ 				color = vitem.getmColor();
+ 				mPaint.setColor(color);
+@@ -2370,9 +2370,9 @@ public class EditableCalligraphy implements Command{
+ 				if(!tempB.isRecycled()){
+ 					vitem.recycleBitmap();
+ 					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy scaleResetCharList tempB");
+-					Log.v("scalereset", "not recycled");
++//					Log.v("scalereset", "not recycled");
+ 				}else{
+-					Log.v("scalereset", "recycled");
++//					Log.v("scalereset", "recycled");
+ 					continue;
+ 				}
+ 				
+@@ -2400,17 +2400,17 @@ public class EditableCalligraphy implements Command{
+ 				starty = starty < 0 ? 0 : starty;
+ 				int distX = endx - startx;
+ 				int distY = endy - starty;
+-				Log.e("pathscale", "-->distx:" + distX + " distY:" + distY);
++//				Log.e("pathscale", "-->distx:" + distX + " distY:" + distY);
+ 				
+ 				float scale = CalligraphyVectorUtil.getScaled(Right_X - Left_X ,Bottom_Y - Top_Y);
+ 				scale *= values[0];
+-				Log.e("cursorScale", "scale:" + scale);
++//				Log.e("cursorScale", "scale:" + scale);
+ 				float height = Bottom_Y - Top_Y;
+ 				
+-				Log.e("vectorScal", "scale:" + values[0]);
+-				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
++//				Log.e("vectorScal", "scale:" + values[0]);
++//				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
+ 				tmpPath = new Path(mPath);
+-				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" );
++//				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" );
+ 				
+ 				Bitmap b;
+ 				try {
+@@ -2450,7 +2450,7 @@ public class EditableCalligraphy implements Command{
+ 					vitem.recycleBitmap();
+ 					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy scaleResetCharList i>=recycle_firstIndex");
+ 					
+-					Log.e("resetscale", "recycle" + i);
++//					Log.e("resetscale", "recycle" + i);
+ 				}
+ 				
+ 				vitem.setMatrix(currentMatrix);
+@@ -2528,7 +2528,7 @@ public class EditableCalligraphy implements Command{
+ 		
+ 			if(charList.get(index).type == Types.CharsWithStroke){
+ 				vitem = (VEditableCalligraphyItem)charList.get(index);
+-				Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:" + vitem.getmPath() + " Bottom_Y:" + vitem.getBottom_Y());
++//				Log.e("vector", "vitem mpath>>>>>>>>>>>>>>>>>>>\n:" + vitem.getmPath() + " Bottom_Y:" + vitem.getBottom_Y());
+ 				
+ 				tempB = vitem.charBitmap;
+ 				if(!tempB.isRecycled()){
+@@ -2562,7 +2562,7 @@ public class EditableCalligraphy implements Command{
+ 				int distY = endy - starty;
+ 				if(distX <=0 || distY <= 0)
+ 					return null;
+-				Log.e("pathscale", "-->distx:" + distX + " distY:" + distY);
++//				Log.e("pathscale", "-->distx:" + distX + " distY:" + distY);
+ 				
+ 				float scale = CalligraphyVectorUtil.getScaled(Right_X - Left_X ,Bottom_Y - Top_Y);
+ 				scale *= values[0];
+@@ -2570,9 +2570,9 @@ public class EditableCalligraphy implements Command{
+ 				float height = Bottom_Y - Top_Y;
+ 				
+ 				Log.e("vectorScal", "scale:" + values[0]);
+-				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
++//				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
+ 				tmpPath = new Path(mPath);
+-				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" );
++//				Log.e(TAG, "End create Bitmap:>>>>>>>>>>>>>>" );
+ 				
+ 				Bitmap b;
+ 				try {
+@@ -2620,15 +2620,15 @@ public class EditableCalligraphy implements Command{
+ 	
+ 	public void recycleCharListBitmap(int lastIndex) {
+ 		long t = Calendar.getInstance().getTimeInMillis();
+-		Log.v("recyclebitmap", "                   recycle available:" + available.getAid() + 
+-				"|| recycle charlist from 0 to" + lastIndex + " !!");
++//		Log.v("recyclebitmap", "                   recycle available:" + available.getAid() + 
++//				"|| recycle charlist from 0 to" + lastIndex + " !!");
+ 		
+ 		if(lastIndex > RECYCLE_LIMIT){
+-			Log.v("recyclebitmap", "need recycle word from 0 to " + (lastIndex - RECYCLE_LIMIT));
++//			Log.v("recyclebitmap", "need recycle word from 0 to " + (lastIndex - RECYCLE_LIMIT));
+ 			lastIndex = lastIndex - RECYCLE_LIMIT;
+ 		}
+ 		else{
+-			Log.v("recyclebitmap", lastIndex + " < " + RECYCLE_LIMIT + " no need to recycle return");
++//			Log.v("recyclebitmap", lastIndex + " < " + RECYCLE_LIMIT + " no need to recycle return");
+ 			return;
+ 		}
+ 			
+@@ -2644,7 +2644,7 @@ public class EditableCalligraphy implements Command{
+ 				
+ 				
+ 				if(t - e.time > 2000){
+-					Log.v("flipper", " recycleCharListBitmap " + i);
++//					Log.v("flipper", " recycleCharListBitmap " + i);
+ 					
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.CharsWithStroke
+ 							&& (e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+@@ -2656,16 +2656,16 @@ public class EditableCalligraphy implements Command{
+ 						
+ //						workList.remove(iden);
+ //						WorkQueue.getInstance().removeIdentify(iden);
+-						Log.v("flipper", "  !!recycleCharListBitmap " + i);
++//						Log.v("flipper", "  !!recycleCharListBitmap " + i);
+ 					}
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem
+ 							&&(e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+ 						e.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmap" + i);
+-						Log.v("flipper", "  !!recycleCharListBitmap " + i);
++//						Log.v("flipper", "  !!recycleCharListBitmap " + i);
+ //						workList.remove(iden);
+ //						WorkQueue.getInstance().removeIdentify(iden);
+-						Log.e("pool", ">>>>>>>>>>>>>>>>>recycle imageItem:" + iden);
++//						Log.e("pool", ">>>>>>>>>>>>>>>>>recycle imageItem:" + iden);
+ 					}
+ 					
+ 				}
+@@ -2678,18 +2678,18 @@ public class EditableCalligraphy implements Command{
+ 		
+ 		int size = charList.size();
+ 		if(firstIndex > size){
+-			Log.v("recyclebitmap", "		firstIndex" + firstIndex + " > size " + size + " return");
++//			Log.v("recyclebitmap", "		firstIndex" + firstIndex + " > size " + size + " return");
+ 			return;
+ 		}
+-		Log.v("recyclebitmap", "                   recycle available:" + available.getAid() + 
+-				"|| recycle charlist from " + firstIndex + " to" + charList.size() + " !!");
++//		Log.v("recyclebitmap", "                   recycle available:" + available.getAid() + 
++//				"|| recycle charlist from " + firstIndex + " to" + charList.size() + " !!");
+ 		
+ 		if((size - firstIndex) > RECYCLE_LIMIT){
+-			Log.v("recyclebitmap", "need recycle from " + (firstIndex + RECYCLE_LIMIT) + " to " + size);
++//			Log.v("recyclebitmap", "need recycle from " + (firstIndex + RECYCLE_LIMIT) + " to " + size);
+ 			firstIndex += RECYCLE_LIMIT;
+ 		}
+ 		else{
+-			Log.v("recyclebitmap", firstIndex + " to " + size + " < " + RECYCLE_LIMIT + " no need to recycle");
++//			Log.v("recyclebitmap", firstIndex + " to " + size + " < " + RECYCLE_LIMIT + " no need to recycle");
+ 			return;
+ 		}
+ 		
+@@ -2700,7 +2700,7 @@ public class EditableCalligraphy implements Command{
+ 				iden = "a" + available.getAid() + "i" + i;
+ 				e = charList.get(i);
+ 				if(e == null){
+-					Log.e("error", "recycleCharListBitmapBottom editable item null");
++//					Log.e("error", "recycleCharListBitmapBottom editable item null");
+ 					continue;
+ 				}
+ 				if(EditableCalligraphyItem.getType(e.getCharType()) == Types.EndofLine
+@@ -2710,8 +2710,8 @@ public class EditableCalligraphy implements Command{
+ 						|| EditableCalligraphyItem.getType(e.getCharType()) == Types.VEDIO
+ 						|| EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem		
+ 				){
+-					Log.v("flipper", "              !!recycleCharListBitmapBottom " + i + " " + 
+-							EditableCalligraphyItem.getType(e.getCharType()));
++//					Log.v("flipper", "              !!recycleCharListBitmapBottom " + i + " " + 
++//							EditableCalligraphyItem.getType(e.getCharType()));
+ 					continue;
+ 				}
+ 				
+@@ -2720,36 +2720,36 @@ public class EditableCalligraphy implements Command{
+ 				
+ 				
+ 				if(t - e.time > 2000){
+-					Log.v("flipper", "              !!!!!!!recycleCharListBitmapBottom " + i + " " + 
+-							EditableCalligraphyItem.getType(e.getCharType()));
++//					Log.v("flipper", "              !!!!!!!recycleCharListBitmapBottom " + i + " " + 
++//							EditableCalligraphyItem.getType(e.getCharType()));
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.CharsWithStroke
+ 							&& (e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+ 						e.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmapBottom Types.CharsWithStroke");
+-						Log.v("flipper", "  !!recycleCharListBitmapBottom " + i);
++//						Log.v("flipper", "  !!recycleCharListBitmapBottom " + i);
+ //						workList.remove(iden);
+ //						WorkQueue.getInstance().removeIdentify(iden);
+-						Log.e("pool", ">>>>>>>>>>>>>>>>>recycle from firstIndex " + firstIndex + " to " + charList.size());
++//						Log.e("pool", ">>>>>>>>>>>>>>>>>recycle from firstIndex " + firstIndex + " to " + charList.size());
+ 					}
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem
+ 							&&(e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+ 						e.recycleBitmap();
+-						Log.e("time", "start recycle --------------");
++//						Log.e("time", "start recycle --------------");
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmapBottom Types.ImageItem");
+-						Log.v("flipper", "  !!recycleCharListBitmapBottom " + i);
++//						Log.v("flipper", "  !!recycleCharListBitmapBottom " + i);
+ //						workList.remove(iden);
+ //						WorkQueue.getInstance().removeIdentify(iden);
+-						Log.e("pool", ">>>>>>>>>>>>>>>>>recycle imageItem:" + iden);
++//						Log.e("pool", ">>>>>>>>>>>>>>>>>recycle imageItem:" + iden);
+ 					}
+ 				}
+ 			}
+ 	}
+ 	public void startRecycleInVisiableBitmap(){
+-		Log.v("recyclebitmap", "recycleable " + recycleable + " !FlipImageView.flipping:" +  !FlipImageView.flipping);
++//		Log.v("recyclebitmap", "recycleable " + recycleable + " !FlipImageView.flipping:" +  !FlipImageView.flipping);
+ 		if(recycleable && !FlipImageView.flipping){
+ 			recycleCharListBitmap(recycle_lastIndex + 1);
+ 			recycleCharListBitmapBottom(recycle_firstIndex + 1);
+-			Log.e("flip", "last:" + recycle_lastIndex + " first:" + recycle_firstIndex);
++//			Log.e("flip", "last:" + recycle_lastIndex + " first:" + recycle_firstIndex);
+ 			
+ 		}
+ 	}
+@@ -3101,10 +3101,10 @@ class resetBitmapWork implements Runnable{
+ 				Log.e("cursorScale", "---------scale:" + scale);
+ 				float height = Bottom_Y - Top_Y;
+ 				
+-				Log.e("vectorScal", "scale:" + values[0]);
+-				Log.e("", "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
++//				Log.e("vectorScal", "scale:" + values[0]);
++//				Log.e("", "End create Bitmap:>>>>>>>>>>>>>>" + (mPath == null));
+ 				tmpPath = new Path(mPath);
+-				Log.e("", "End create Bitmap:>>>>>>>>>>>>>>" );
++//				Log.e("", "End create Bitmap:>>>>>>>>>>>>>>" );
+ 				
+ 				Bitmap b;
+ 				try {
+diff --git a/src/com/jinke/calligraphy/app/branch/Start.java b/src/com/jinke/calligraphy/app/branch/Start.java
+index 1e21468..ce32e70 100644
+--- a/src/com/jinke/calligraphy/app/branch/Start.java
++++ b/src/com/jinke/calligraphy/app/branch/Start.java
+@@ -795,8 +795,8 @@ public class Start extends Activity{
+ 		
+ //		menu.add(Menu.NONE, Menu.FIRST + 7, 7, "生成pdf到本地").setIcon(
+ //				android.R.drawable.ic_menu_send);
+-		menu.add(Menu.NONE, Menu.FIRST + 8, 8, "制作添加翰林算子").setIcon(
+-				android.R.drawable.ic_menu_send);
++//		menu.add(Menu.NONE, Menu.FIRST + 8, 8, "制作添加翰林算子").setIcon(
++//				android.R.drawable.ic_menu_send);
+ 		
+ 
+ //		menu.add(Menu.NONE, Menu.FIRST + 7, 7, "改变刷新限制,当前:" + limit_num).setIcon(
+@@ -938,21 +938,21 @@ public class Start extends Activity{
+ 
+ 			break;
+ 			
+-		case Menu.FIRST + 7:
+-
+-            Intent pdfIntent = new Intent();
+-            pdfIntent.setClass(this, CloudActivity.class);
+-            startActivity(pdfIntent);
+-            break;
+-		case Menu.FIRST + 8:
+-			Intent mIntent = new Intent();
+-			ComponentName comp = new ComponentName(
+-		                         "com.studio.mindo",
+-		                         "com.studio.mindo.MindoTestActivity");
+-			mIntent.setComponent(comp);
+-			mIntent.setAction("android.intent.action.VIEW");
+-			startActivityForResult(mIntent, Properyt.MINDMAP_REQUEST_CODE);
+-			break;
++//		case Menu.FIRST + 7:
++//
++//            Intent pdfIntent = new Intent();
++//            pdfIntent.setClass(this, CloudActivity.class);
++//            startActivity(pdfIntent);
++//            break;
++//		case Menu.FIRST + 8:
++//			Intent mIntent = new Intent();
++//			ComponentName comp = new ComponentName(
++//		                         "com.studio.mindo",
++//		                         "com.studio.mindo.MindoTestActivity");
++//			mIntent.setComponent(comp);
++//			mIntent.setAction("android.intent.action.VIEW");
++//			startActivityForResult(mIntent, Properyt.MINDMAP_REQUEST_CODE);
++//			break;
+ 		}
+ 
+ 		return false;
+diff --git a/src/com/jinke/calligraphy/app/branch/WorkQueue.java b/src/com/jinke/calligraphy/app/branch/WorkQueue.java
+index 170db17..4490dc2 100644
+--- a/src/com/jinke/calligraphy/app/branch/WorkQueue.java
++++ b/src/com/jinke/calligraphy/app/branch/WorkQueue.java
+@@ -8,7 +8,7 @@ import android.util.Log;
+ 
+ public class WorkQueue {
+ 
+-	private final static int nThreads = 4;
++	private final static int nThreads = 3;
+ 	private  static int QUEUE_SIZE = 300;
+ 	private static int IMAGE_QUEUE_SIZE = 2;
+ 	private final Thread[] threads;
+@@ -70,14 +70,14 @@ public class WorkQueue {
+ 	public boolean execute(Runnable r){
+ 		synchronized (queue) {
+ 			if(queue.contains(r)){
+-				Log.v("workqueueadd", "contains r----------------" + queue.size());
++//				Log.v("workqueueadd", "contains r----------------" + queue.size());
+ 				return false;
+ 			}else{
+ 				if(queue.size() > QUEUE_SIZE){
+ 					queue.removeFirst();
+ 				}
+ 				queue.addLast(r);
+-				Log.v("workqueueadd", "not contains r--------------" + queue.size());
++//				Log.v("workqueueadd", "not contains r--------------" + queue.size());
+ 				return true;
+ 			}
+ 				
+@@ -86,14 +86,14 @@ public class WorkQueue {
+ 	public boolean executeImage(Runnable r){
+ 		synchronized (imageQueue) {
+ 			if(imageQueue.contains(r)){
+-				Log.v("workqueueadd", "contains r----------------" + imageQueue.size());
++//				Log.v("workqueueadd", "contains r----------------" + imageQueue.size());
+ 				return false;
+ 			}else{
+ 				if(imageQueue.size() >IMAGE_QUEUE_SIZE){
+ 					imageQueue.removeFirst();
+ 				}
+ 				imageQueue.addLast(r);
+-				Log.v("workqueueadd", "not contains r--------------" + imageQueue.size());
++//				Log.v("workqueueadd", "not contains r--------------" + imageQueue.size());
+ 				return true;
+ 			}
+ 				
+@@ -103,11 +103,11 @@ public class WorkQueue {
+ 	public boolean removeWork(Runnable r){
+ 		synchronized (imageQueue) {
+ 			if(imageQueue.remove(r)){
+-				Log.v("workqueueremove", "remove r------------------" + imageQueue.size());
++//				Log.v("workqueueremove", "remove r------------------" + imageQueue.size());
+ 				return true;
+ 			}
+-			else
+-				Log.v("workqueueremove", "remove r  not contains------------------" + imageQueue.size());
++//			else
++//				Log.v("workqueueremove", "remove r  not contains------------------" + imageQueue.size());
+ 			return false;
+ //			queue.notify();
+ 		}
+@@ -122,10 +122,10 @@ public class WorkQueue {
+ 				synchronized (queue) {
+ 					while(queue.isEmpty()){
+ 						try {
+-							Log.e("queue", "wait");
++//							Log.e("queue", "wait");
+ 							end = System.currentTimeMillis();
+-							Log.e("workqueuetime", "-------------------------" +
+-									"--------run finish use time:" + (end - start));
++//							Log.e("workqueuetime", "-------------------------" +
++//									"--------run finish use time:" + (end - start));
+ 							queue.wait();
+ 						} catch (InterruptedException e) {
+ 							e.printStackTrace();
+diff --git a/src/com/jinke/mywidget/FlipImageView.java b/src/com/jinke/mywidget/FlipImageView.java
+index fd3065a..f406bfd 100644
+--- a/src/com/jinke/mywidget/FlipImageView.java
++++ b/src/com/jinke/mywidget/FlipImageView.java
+@@ -68,10 +68,10 @@ public class FlipImageView extends ImageView{
+ 	@Override
+ 	public void requestLayout() {
+ 		// TODO Auto-generated method stub
+-		Log.e("FlipImageView", "request layout");
++//		Log.e("FlipImageView", "request layout");
+ 		if(!up){
+ 			super.requestLayout();
+-			Log.e("FlipImageView", "request layout----------");
++//			Log.e("FlipImageView", "request layout----------");
+ 		}
+ 	}
+ 	
+@@ -105,15 +105,15 @@ public class FlipImageView extends ImageView{
+             int iDeltx = iCurrentx - mPreviousx;
+             int iDelty = iCurrenty - mPreviousy;
+             
+-            Log.e("flipButton", "move iTop" + iTop);
++//            Log.e("flipButton", "move iTop" + iTop);
+             if(top + iDelty >= TOP_LIMIT-5 && top + iDelty + getHeight() < BUTTOM_LIMIT){
+-            	Log.e("flipButton", "iTop" + iTop);
++//            	Log.e("flipButton", "iTop" + iTop);
+ 	            if(iDeltx != 0 || iDelty != 0)
+ 	                layout(600-getWidth(),
+ 	                		top + iDelty,
+ 	                        600,
+ 	                        top + iDelty + getHeight());
+-	            Log.e("flipButton", "top+iDelty:" + top + iDelty + " +height:" + top + iDelty + getHeight());
++//	            Log.e("flipButton", "top+iDelty:" + top + iDelty + " +height:" + top + iDelty + getHeight());
+ 	            
+ 	 //834
+ 	            mPreviousx = iCurrentx - iDeltx;
+@@ -128,8 +128,8 @@ public class FlipImageView extends ImageView{
+ 	    	        		CursorDrawBitmap.listEditableCalligraphy.get(i).setFlip_dst(iTop);
+ 	    			}
+ 	            
+-	    	    Log.v("flipper", "                    FlipImageView handler has message:"
+-	    	    		+ handler.hasMessages(FLIP_WHAT));
++//	    	    Log.v("flipper", "                    FlipImageView handler has message:"
++//	    	    		+ handler.hasMessages(FLIP_WHAT));
+ 	    	    if(!handler.hasMessages(FLIP_WHAT)){
+ 	    	    	handler.sendEmptyMessage(FLIP_WHAT);
+ 	    	    }
+diff --git a/src/com/jinke/single/BitmapCount.java b/src/com/jinke/single/BitmapCount.java
+index 83bf5a0..3bf4a26 100644
+--- a/src/com/jinke/single/BitmapCount.java
++++ b/src/com/jinke/single/BitmapCount.java
+@@ -18,16 +18,16 @@ public class BitmapCount {
+ 	
+ 	public void createBitmap(String msg){
+ 		count++;
+-		Log.e(TAG, "create bitmap for :" + msg + " current count:" + count);
++//		Log.e(TAG, "create bitmap for :" + msg + " current count:" + count);
+ 	}
+ 	public void recycleBitmap(String msg){
+ 		count --;
+-		Log.e(TAG, "------recycle bitmap for :" + msg + " current count:" + count);
++//		Log.e(TAG, "------recycle bitmap for :" + msg + " current count:" + count);
+ 	}
+ 	
+ 	public void pageChanged(){
+ 		count = 0;
+-		Log.e(TAG, "pageChanged reset count :" + count);
++//		Log.e(TAG, "pageChanged reset count :" + count);
+ 	}
+ 
+ }
+-- 
+1.7.4.1
+

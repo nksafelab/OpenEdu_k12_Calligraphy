@@ -1,0 +1,2479 @@
+From 6f324efed11883308e254d825e60b31fd51df87d Mon Sep 17 00:00:00 2001
+From: YuJinyang <Yujy@jinke.com.cn>
+Date: Thu, 2 Aug 2012 18:15:25 +0800
+Subject: [PATCH 1/9] Finished for Core4
+
+---
+ AndroidManifest.xml                                |    2 +
+ libs/armeabi/libcal_parser.so                      |  Bin 26336 -> 22336 bytes
+ libs/armeabi/libpdc_prs.so                         |  Bin 14028 -> 14160 bytes
+ .../jinke/calligraphy/app/branch/Calligraph.java   |    2 +-
+ .../calligraphy/app/branch/CursorDrawBitmap.java   |   20 +-
+ .../app/branch/EditableCalligraphy.java            |  361 +++++++++-----------
+ .../app/branch/EditableCalligraphyItem.java        |   53 +++-
+ src/com/jinke/calligraphy/app/branch/MyView.java   |    6 +-
+ src/com/jinke/calligraphy/app/branch/Start.java    |   60 +---
+ .../jinke/calligraphy/app/branch/WorkQueue.java    |  115 +++++--
+ .../jinke/calligraphy/database/BitmapHelper.java   |   11 +-
+ .../jinke/calligraphy/database/CalligraphyDB.java  |   60 ++--
+ .../calligraphy/touchmode/CursorScaleMode.java     |  146 +-------
+ .../jinke/calligraphy/touchmode/HandWriteMode.java |    4 +-
+ .../calligraphy/touchmode/ImageSlideMode.java      |    7 +-
+ .../jinke/calligraphy/touchmode/SideDownMode.java  |    5 +-
+ src/com/jinke/mywidget/FlipImageView.java          |    2 +-
+ src/com/jinke/single/BitmapUtils.java              |   41 ++-
+ src/com/jinke/single/ScaleSave.java                |   22 +-
+ src/hallelujah/cal/CalligraphyVectorUtil.java      |    2 +-
+ src/hallelujah/cal/Point.java                      |    2 +
+ src/hallelujah/cal/parser/ParserStroke.java        |    2 +-
+ 22 files changed, 453 insertions(+), 470 deletions(-)
+
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index 7a3823e..c8c2362 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -5,6 +5,8 @@
+         <activity android:name="Start" android:configChanges="orientation|keyboardHidden" android:screenOrientation="portrait" android:label="@string/app_name">
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN"/>
++                <action android:name="com.jinke.calligraphy.app.branch.action"/>
++                 <category android:name="android.intent.category.DEFAULT" /><!--必须，否则无效-->
+                 <category android:name="android.intent.category.LAUNCHER"/>
+             </intent-filter>
+         </activity>
+diff --git a/libs/armeabi/libcal_parser.so b/libs/armeabi/libcal_parser.so
+index 4f8ed056ce3448b7e984a8b59edc2d08933d6cdf..75c6685df6348dcfc29381134d6a29264f2b4c8a 100644
+GIT binary patch
+literal 22336
+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
+KQ-WWb-Twlo0h*iu
+
+literal 26336
+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
+Y@c(EK)`vtfKyB(rHuRp;0l2RBe`|44h5!Hn
+
+diff --git a/libs/armeabi/libpdc_prs.so b/libs/armeabi/libpdc_prs.so
+index 3c54aa3dda0b78abadc26f12a825e0bebcdbef4c..99d56db9b24ec766d8d7b02773342c00dd0bafb0 100644
+GIT binary patch
+literal 14160
+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
+S86nL<O;<th7peeM_5KI?EcQtN
+
+literal 14028
+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
+GeE$Q9=ZBR5
+
+diff --git a/src/com/jinke/calligraphy/app/branch/Calligraph.java b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+index ba62baa..36ed66b 100755
+--- a/src/com/jinke/calligraphy/app/branch/Calligraph.java
++++ b/src/com/jinke/calligraphy/app/branch/Calligraph.java
+@@ -1166,7 +1166,7 @@ public class Calligraph extends RelativeLayout implements OnPanelListener, OnCli
+ 				try {
+ 					EditableCalligraphyItem item = view.cursorBitmap.insertImageBitmap(
+ 							BitmapFactory.decodeResource(getResources(), R.drawable.photo_adhoc)
+-							,Uri.parse("file:///android_asset/photo_adhoc.png"));
++							,Uri.parse("android.resource://" + Start.context.getApplicationContext().getPackageName() + "/" + R.drawable.photo_adhoc));
+ 					item.setWifiOrAdhoc();
+ 					BitmapCount.getInstance().createBitmap("Calligraph decode photo.png");
+ 					firstTransformPicFromMobile = true;
+diff --git a/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java b/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java
+index 8547f83..3ffd65b 100644
+--- a/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java
++++ b/src/com/jinke/calligraphy/app/branch/CursorDrawBitmap.java
+@@ -625,17 +625,7 @@ public void initDate(WolfTemplate wt) {
+             	c.drawBitmap(transparentBitmap, new Rect(0, Start.SCREEN_HEIGHT - EditableCalligraphy.flip_dst, Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT),
+             	      new Rect(0, 0, Start.SCREEN_WIDTH, EditableCalligraphy.flip_dst), new Paint());
+             	
+-            	c.setBitmap(BaseBitmap.addBitmapList.get(0));
+-            	c.drawBitmap(transparentBitmap, new Rect(0, Start.SCREEN_HEIGHT - EditableCalligraphy.flip_dst, Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT),
+-                                    new Rect(0, 0, Start.SCREEN_WIDTH, EditableCalligraphy.flip_dst), new Paint());
+         	} else {
+-        		c.setBitmap(BaseBitmap.addBitmapList.get(0));
+-            	c.drawBitmap(transparentBitmap, new Rect(0, 0, Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT - (EditableCalligraphy.flip_dst - Start.SCREEN_HEIGHT)),
+-                                    new Rect(0, EditableCalligraphy.flip_dst - Start.SCREEN_HEIGHT, Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT), new Paint());
+-            	c.setBitmap(BaseBitmap.addBitmapList.get(1));
+-            	c.drawBitmap(transparentBitmap, new Rect(0, Start.SCREEN_HEIGHT - (EditableCalligraphy.flip_dst - Start.SCREEN_HEIGHT), Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT),
+-                                    new Rect(0, 0, Start.SCREEN_WIDTH, EditableCalligraphy.flip_dst - Start.SCREEN_HEIGHT), new Paint());
+-        	
+             	c.setBitmap(cleanBitmap1);
+             	c.drawBitmap(transparentBitmap, new Rect(0, 0, Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT - (EditableCalligraphy.flip_dst - Start.SCREEN_HEIGHT)),
+             	     new Rect(0, EditableCalligraphy.flip_dst - Start.SCREEN_HEIGHT, Start.SCREEN_WIDTH, Start.SCREEN_HEIGHT), new Paint());
+@@ -741,7 +731,7 @@ public void initDate(WolfTemplate wt) {
+ 		public void onFinish() {
+ 			
+ 
+-//			drawListener.end();
++			drawListener.end();
+ 			//让点集实现类实现相关的操作
+ 			bView.baseImpl.clear();
+ 			/*
+@@ -932,6 +922,14 @@ public void initDate(WolfTemplate wt) {
+ 		
+ 	}
+ 	
++	public void cancelWord(){
++		bView.baseImpl.clear();
++        rectsList.clear();
++        wordFinish = true;
++        resetBound();
++		transparentBitmap.eraseColor(Color.TRANSPARENT);
++		setJump();
++	}
+ 	public void insertAlarmItem(String date,String time){
+ //		Toast.makeText(Start.context, "date:"+ date, Toast.LENGTH_SHORT).show();
+ 		
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+index 2340658..5b3ca6e 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphy.java
+@@ -14,6 +14,7 @@ import java.util.LinkedList;
+ import java.util.List;
+ 
+ import com.jinke.calligraphy.activity.VideoActivity;
++import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.ItemStatus;
+ import com.jinke.calligraphy.app.branch.EditableCalligraphyItem.Types;
+ import com.jinke.calligraphy.database.CDBPersistent;
+ import com.jinke.calligraphy.database.CalligraphyDB;
+@@ -23,6 +24,7 @@ import com.jinke.calligraphy.touchmode.CursorScaleMode;
+ import com.jinke.mywidget.FlipImageView;
+ import com.jinke.mywidget.interpolator.EasingType.Type;
+ import com.jinke.single.BitmapCount;
++import com.jinke.single.BitmapUtils;
+ 
+ import android.content.ContentResolver;
+ import android.content.Intent;
+@@ -776,7 +778,7 @@ public class EditableCalligraphy implements Command{
+ 			temp_src = e.getCharBitmap();
+ 			temp_dst = Bitmap.createBitmap(temp_src, 0, 0, temp_src.getWidth(), temp_src.getHeight(),matrix,true);
+ 			BitmapCount.getInstance().createBitmap("EditableCalligraphy changeSmallBitmap");
+-			temp_src.recycle();
++			e.recycleBitmap();
+ 			BitmapCount.getInstance().recycleBitmap("EditableCalligraphy changeSmallBitmap temp_src");
+ 			
+ 			e = new EditableCalligraphyItem(temp_dst);
+@@ -785,7 +787,7 @@ public class EditableCalligraphy implements Command{
+ 		
+ 	}
+ //	boolean scaleFlag = false;
+-	public void scaleUpdate(Bitmap m,Matrix matrix,float savedScale,boolean isPicScale,EditableCalligraphyItem picItem){
++	public void scaleUpdate(Bitmap m,Matrix matrix){
+ 		
+ 		if(available.getDirect() == 1){
+ 			update_vertical_fromRight(m, matrix);
+@@ -798,14 +800,13 @@ public class EditableCalligraphy implements Command{
+ 		}
+ 		Paint p = new Paint();
+ 		
+-		if(isPicScale)
+-			matrix = Start.c.view.getMMMatrix();
+ 		
+ 		matrix.getValues(values);
+ 		scale = values[0];
+ 		float dScale ;
+ 		float wordScale = 0;
+ 		float width = 0.0f;
++		float picScale = 0;
+ 		
+ 		this.mb = m;
+ 		c = new Canvas();
+@@ -832,11 +833,6 @@ public class EditableCalligraphy implements Command{
+ 			
+ 			EditableCalligraphyItem e = charList.get(i);
+ 			e.getMatrix().getValues(values);
+-			if(isPicScale){
+-				dScale = values[0];
+-				wordScale = dScale / values[0];
+-			}
+-			else
+ 				dScale /= values[0];
+ 			tt = values[0];
+ 			
+@@ -858,21 +854,8 @@ public class EditableCalligraphy implements Command{
+ 				continue;
+ 			}
+ 			if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem){
+-				float te = 0;
+-				if(isPicScale && picItem == e){
+-					te = dScale/savedScale;
+-					if(maxHeight < e.getHeight() * te){
+-						maxHeight = e.getHeight() * te;
+-						int tem = 0;
+-						if(maxHeight % (int)(linespace * wordScale) != 0){
+-							tem = (int) (maxHeight / (int)(linespace * wordScale));
+-							tem ++;
+-							maxHeight = tem * linespace * wordScale;
+-						}
+-					}
+-				}else{
+-					if(maxHeight < e.getHeight()){
+-						maxHeight = e.getHeight();
++					if(maxHeight < e.getHeight() * tt){
++						maxHeight = e.getHeight() * tt;
+ 						int tem = 0;
+ 						if(maxHeight % (int)(linespace * dScale) != 0){
+ 							tem = (int) (maxHeight / (int)(linespace * dScale));
+@@ -880,7 +863,6 @@ public class EditableCalligraphy implements Command{
+ 							maxHeight = tem * linespace * dScale;
+ 						}
+ 					}
+-				}
+ 			}
+ 			
+ 			if(i == this.currentpos){
+@@ -927,16 +909,10 @@ public class EditableCalligraphy implements Command{
+ 				if(mv.getTouchMode() != mv.getCursorScaleMode()){
+ 					mm.preScale(1, 1);
+ 				}else if(e.type == Types.ImageItem){
+-					if(isPicScale && picItem == e){
+-						mm.preScale(dScale/savedScale,dScale/savedScale);
+-					}
+-					else
+-						mm.preScale(1,1);
++					
++						mm.preScale(tt,tt);
+ 				}
+ 				else{
+-					if(isPicScale)
+-						mm.preScale(1,1);
+-					else
+ 						mm.preScale(dScale,dScale);
+ 				}
+ 				
+@@ -947,10 +923,7 @@ public class EditableCalligraphy implements Command{
+ 			}//end  if
+ 			
+ 			e.setCurPos(x, y);
+-			if(isPicScale)
+-				x += e.getWidth()*wordScale  + HMargin;
+-			else
+-				x += e.getWidth()*dScale  + HMargin;
++			x += e.getWidth()*dScale  + HMargin;
+ 			
+ 		}//end for
+ 		if( this.currentpos >= charList.size()){
+@@ -965,7 +938,7 @@ public class EditableCalligraphy implements Command{
+ 	
+ 	float scale;
+ 	float recycle_line = 0;
+-	float recycle_bottom_line = 900;
++	float recycle_bottom_line = 850;
+ 	
+ 	boolean recycleable;
+ 	int recycle_lastIndex = 0;
+@@ -1062,15 +1035,19 @@ public class EditableCalligraphy implements Command{
+ 					EditableCalligraphyItem.getType(e.getCharType()) == Types.AUDIO ||
+ 					EditableCalligraphyItem.getType(e.getCharType()) == Types.VEDIO){
+ 				dScale /= values[0];    //当前缩放比例，除以字体生成时的缩放比例，得到应该显示的缩放比例
+-			}else
++			}else if(e.type == Types.ImageItem){
++				dScale = values[0];
++			}
++			else{
+ 				dScale = 1;//矢量字体，不需要缩放
++			}
+ 			
+ 			tt = values[0];//字体生成时的缩放比例
+ 			Log.e("wordmatrix", "itemid:" + i + "tt" + tt);
+ 			
+ 			if(maxHeight < (linespace + VMargin)*scale){
+ 				maxHeight = (linespace + VMargin)*scale;
+-				Log.e("max","i" + i + "scale:" + scale + " maxHeight:" + maxHeight);
++//				Log.e("max","i" + i + "scale:" + scale + " maxHeight:" + maxHeight);
+ 			}
+ 			
+ 			if(e.getWidth()  > end_x - x && x != start_x){
+@@ -1090,8 +1067,8 @@ public class EditableCalligraphy implements Command{
+ 				continue;
+ 			}
+ 			if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem){
+-				if(maxHeight < e.getHeight()){
+-					maxHeight = e.getHeight();
++				if(maxHeight < e.getHeight() * dScale){
++					maxHeight = e.getHeight() * dScale;
+ 					int tem = 0;
+ 					if(maxHeight % (int)(linespace * scale) != 0){
+ 						tem = (int) (maxHeight / (int)(linespace * scale));
+@@ -1122,10 +1099,10 @@ public class EditableCalligraphy implements Command{
+ 				
+ 				//画所有的字
+ 				Bitmap tmp = e.getCharBitmap();
+-				if(tmp == null){
+-					//图片有可能为空
+-					System.out.println(" !!!null:" + ( tmp == null)); 
+-				}else{
++//				if(tmp == null){
++//					//图片有可能为空
++//					Log.e("imageNull","temp == null");
++//				}else{
+ 					
+ 					float pad = 0.0f;
+ 					
+@@ -1138,7 +1115,7 @@ public class EditableCalligraphy implements Command{
+ 					}
+ 					if(e.getHeight()/tt < CursorDrawBitmap.mIntervalHeight) {
+ 						pad = (CursorDrawBitmap.mIntervalHeight  - 
+-								tmp.getHeight()/tt)  /1.2f;
++								e.getHeight()/tt)  /1.2f;
+ //						Log.e("pad", "i:" + i + "e.getHeight():" + e.getHeight() + 
+ //								" mIntervalHeight:" + CursorDrawBitmap.mIntervalHeight
+ //								+ " tmp.getHeight():" + tmp.getHeight()
+@@ -1147,9 +1124,9 @@ public class EditableCalligraphy implements Command{
+ //								+ " available.getControltype():" + available.getControltype());
+ 					}
+ 					if(e.type == Types.ImageItem){
+-						if(e.getWidth() > Start.SCREEN_WIDTH)
++						if(e.getWidth()* dScale > Start.SCREEN_WIDTH)
+ 							x += e.getFlipDstX();
+-						Log.v("ImageSlideMode", "update image x:" + x + " flipdst:" + e.getFlipDstX() + " x:" + x);
++//						Log.v("ImageSlideMode", "update image x:" + x + " flipdst:" + e.getFlipDstX() + " x:" + x);
+ 					}
+ 					Matrix mm = new Matrix();
+ 					if(flip_dst < BaseBitmap.TITLE_HEIGHT){
+@@ -1161,48 +1138,73 @@ public class EditableCalligraphy implements Command{
+ 						
+ 					}
+ 					
+-					//是图片不缩放,矢量字体也不缩放
+-					if(e.getCharType() == 7 && mv.getTouchMode() != mv.getCursorScaleMode()){
+-						mm.preScale(1, 1);
+-					}
++					
+ 					if(e.type == Types.CharsWithoutStroke || 
+ 							e.type == Types.AUDIO ||
+-							e.type == Types.VEDIO){
+-						
+-						
++							e.type == Types.VEDIO ||
++							e.type == Types.ImageItem){
+ 						mm.preScale(dScale, dScale);
+ 					}
+ 					
+ 					mm.getValues(recycleValues);
+ 					
++//					if(e.type == Types.ImageItem){
++//						Log.e("test", iden + " recycleValues[5]" + (recycleValues[5]  + e.getHeight()*dScale));
++//						Log.e("test", "recycleValues[5]" + recycleValues[5]);
++//					}
+ 					
+-						if(recycleValues[5] < recycle_line){
++						if(recycleValues[5] + e.getHeight()*dScale < recycle_line){
++							//因为有BaseBitmap.TITLE_HEIGHT; 在超出屏幕BaseBitmap.TITLE_HEIGHT时被释放；
+ 							recycleable = true;
+ 							recycle_lastIndex = i;
+ 							//如果是图片，立即释放
+ 							if(e.type == Types.ImageItem){
+-								if(e.getCharBitmap() != null && !e.getCharBitmap().isRecycled())
+-									e.getCharBitmap().recycle();
++//								Log.e("test", "image recycle from top" + iden);
++								if(e.itemStatus == ItemStatus.NORMAL){
++									e.recycleBitmap();
++//									Log.e("time", " !imageItem recycle " + iden);
++									e.setRecycleStatus("recycle top " + iden);
++								}
++//								if(e.itemStatus == ItemStatus.QUEUED){
++//									if(WorkQueue.getInstance().removeWork(new resetImageWork(e,iden))){
++//										Log.e("adddelete", "remove queue " + iden);
++//										e.setRecycleStatus("removed from queue " + iden);
++//									}
++//								}
+ 							}
+-							
+-	//						Log.v("flipper", "set recycle_lastIndex " + i + " recycleValues:" +  recycleValues[5]);
+-						}else if(recycleValues[5] > recycle_bottom_line){
++						}else if(recycleValues[5] > recycle_bottom_line ){
+ 							if(bottomflag){
+ //								if(i > CalligraphyDB.INIT_WORD_COUNT){
+ 									recycleable = true;
+ 									recycle_firstIndex = i;
+ 									bottomflag = false;
+ //								}
++							}
+ 								//如果是图片，立即释放
+ 								if(e.type == Types.ImageItem){
+-									if(e.getCharBitmap() != null && !e.getCharBitmap().isRecycled())
+-										e.getCharBitmap().recycle();
++//									Log.e("test", "image recycle from bottom" + iden);
++//									Log.e("recycleImage", " imageItem recycle " + iden + " bitmap:" + (e.getCharBitmap()==null)
++//											+ " isRecycle:" + e.getCharBitmap().isRecycled() +
++//											" IsOOMPIC :" + (e.getCharBitmap() == Start.OOM_BITMAP));
++									if(e.itemStatus == ItemStatus.NORMAL){
++										
++										e.recycleBitmap();
++										e.setRecycleStatus("recycle bottom " + iden);
++//										Log.e("adddelete", " imageItem recycle " + iden );
++									}
++//									if(e.itemStatus == ItemStatus.QUEUED){
++//										Log.e("adddelete", "remove queue " + iden);
++//										if(WorkQueue.getInstance().removeWork(new resetImageWork(e,iden))){
++//											Log.e("adddelete", "!!!!!!!!!!!remove queue " + iden);
++//											e.setRecycleStatus("removed from queue " + iden);
++//										}
++//									}
+ 								}
+ 	//							Log.v("flipper", "set recycle_firstIndex " + i + " recycleValues:" +  recycleValues[5]);
+-							}
++							
+ 						}
+ 						else{
+-							if(tmp.isRecycled()){
++							if(tmp == null || ((tmp != null) && tmp.isRecycled())){
+ 								
+ //								for(int j=0;j<workList.size();j++){
+ //									Log.v("workqueue", j + "        " + workList.get(j));
+@@ -1210,6 +1212,7 @@ public class EditableCalligraphy implements Command{
+ //								}
+ //								if(!workList.contains(iden) && !flip){
+ //								if(!WorkQueue.getInstance().contains(iden)){
++								boolean isInsert = false;
+ 									try {
+ 										if(e.type == EditableCalligraphyItem.Types.CharsWithStroke){
+ //											Log.v("workqueue", "						add identify:" + iden);
+@@ -1217,23 +1220,31 @@ public class EditableCalligraphy implements Command{
+ 											execute(new resetBitmapWork((VEditableCalligraphyItem)e 
+ 													,iden));
+ 											
+-										}else if(e.type == EditableCalligraphyItem.Types.ImageItem){
+-											WorkQueue.getInstance().execute(new resetImageWork(e,iden));
+-											Log.e("workqueue", "add image work " + iden);
++										}else if(e.type == Types.ImageItem){
++											Log.e("time", "item " + iden + " status:" + e.itemStatus);
++											if(e.itemStatus == ItemStatus.RECYCLED){
++												isInsert = WorkQueue.getInstance().executeImage(new resetImageWork(e,iden));
++												Log.e("workqueue", "add image work " + iden);
++//												if(isInsert){
++//													e.setQueueStatus("insert " + iden);
++//													Log.e("isInsert", "insert " + iden);
++//													Log.e("adddelete", "update insert " + iden);
++//												}
++											}
+ 										}
+ 									} catch (ClassCastException e2) {
+ 										// TODO: handle exception
+ 										Log.e(TAG, "addtoworkqueue", e2);
+ 									}
+ 									//java.lang.ClassCastException: com.jinke.calligraphy.app.branch.EditableCalligraphyItem
+-									Log.e("recycle", "identify add queue:" + iden);
++//									Log.e("recycle", "identify add queue:" + iden);
+ //								}
+ 								c.drawBitmap(Start.EMPTY_BITMAP, mm, p);
+ 							}else
+ 								c.drawBitmap(tmp, mm, p);
+ 						}
+ 				
+-			}//end null if
++//			}//end null if
+ 			}//end  if
+ 			if(e != null){
+ 			if(e.type == Types.ImageItem)
+@@ -1674,8 +1685,8 @@ public class EditableCalligraphy implements Command{
+ 				 r = new Rect(
+ 						e.getCurPosX(),
+ 						e.getCurPosY()- flip_dst - cursorMargin,
+-						(int)(e.getCurPosX()+ e.getWidth() + HMargin),
+-						(int)(e.getCurPosY()+ e.getHeight() + VMargin*scale - flip_dst) + cursorMargin);
++						(int)(e.getCurPosX()+ e.getWidth()*initScale + HMargin),
++						(int)(e.getCurPosY()+ e.getHeight()*initScale + VMargin*scale - flip_dst) + cursorMargin);
+ 				 if(e.isWifiOrAdhoc()){
+ 					 int temp = ((int)(e.getCurPosY()+ e.getHeight() + VMargin*scale - flip_dst) + cursorMargin - y);
+ 					 if(x <= e.getCurPosX() + temp){
+@@ -1710,7 +1721,7 @@ public class EditableCalligraphy implements Command{
+ 		for(int i =0 ; i< charList.size(); i++){
+ 			EditableCalligraphyItem e = charList.get(i);
+ 			if(e.charBitmap != null){
+-				e.getCharBitmap().recycle();
++				e.recycleBitmap();
+ 				BitmapCount.getInstance().recycleBitmap("EditableCalligraphy clear e.getCharBitmap()");
+ 			}
+ 			if(e.getWord() != null)
+@@ -2094,7 +2105,7 @@ public class EditableCalligraphy implements Command{
+ //			x += e.getWidth()*scale  + HMargin;
+ 			x += e.getWidth()*dScale  + HMargin * scale;
+ 			if(tmp != null && !tmp.isRecycled() && recycleFlag){
+-				tmp.recycle();
++				e.recycleBitmap();
+ 				BitmapCount.getInstance().recycleBitmap("EditableCalligraphy saveAllCharToBitmap tmp");	
+ 			}
+ 		}//end for
+@@ -2357,7 +2368,7 @@ public class EditableCalligraphy implements Command{
+ 				
+ 				tempB = vitem.charBitmap;
+ 				if(!tempB.isRecycled()){
+-					tempB.recycle();
++					vitem.recycleBitmap();
+ 					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy scaleResetCharList tempB");
+ 					Log.v("scalereset", "not recycled");
+ 				}else{
+@@ -2436,7 +2447,7 @@ public class EditableCalligraphy implements Command{
+ 				vitem.charBitmap = b;
+ 				vitem.resetWidthHeight();
+ 				if(i>=recycle_firstIndex){
+-					vitem.charBitmap.recycle();
++					vitem.recycleBitmap();
+ 					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy scaleResetCharList i>=recycle_firstIndex");
+ 					
+ 					Log.e("resetscale", "recycle" + i);
+@@ -2495,7 +2506,7 @@ public class EditableCalligraphy implements Command{
+ 					
+ 					tempB = e.charBitmap;
+ 					if(tempB != null && !tempB.isRecycled() && tempB != Start.OOM_BITMAP){
+-						tempB.recycle();
++						e.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy VEditableCalligraphyItem execute tempB");
+ 					}
+ 					
+@@ -2584,116 +2595,44 @@ public class EditableCalligraphy implements Command{
+ 	
+ 	class resetImageWork implements Runnable{
+ 		EditableCalligraphyItem e = null;
+-		String identity = "";
++		public String identity = "";
+ 		public resetImageWork(EditableCalligraphyItem e, String iden){
+ 			this.e = e;
+ 			this.identity = iden;
+-//			workList.add(iden);
+-//			WorkQueue.getInstance().addIdentify(iden);
+-			Log.e("image", "add image work :" + e.getImageUri());
+ 		}
+ 		
+ 		@Override
+ 		public boolean equals(Object o) {
+ 			// TODO Auto-generated method stub
++			
+ 			return identity.equals(((resetImageWork)o).identity);
+ 		}
+ 		
+-		
+ 		@Override
+ 		public void run() {
+-			
++			Log.e("resetImage", identity + " begin execute------------------");
+ 			execute();
++			
++			Log.e("resetImage", identity + " end execute");
+ 		}
+ 		
+ 		public EditableCalligraphyItem execute(){
+-
++			
+ 			// TODO Auto-generated method stub
++			Log.e("resetImage", "resetBitmapWork:" + identity + " :" + e.getImageUri() + "--------------");
++			Bitmap bitmap = BitmapUtils.getInstance().getBitmapFromUri(e.getImageUri());
++			Log.e("resetImage", "resetBitmapWork:" + identity + " :" + e.getImageUri() + "after getBitmapFromUri--------------");
+ 			
+-			Log.e("image", "resetBitmapWork:");
+-			Log.e("image", "resetBitmapWork-------:" + e.getImageUri());
+-//			CDBPersistent db = new CDBPersistent(Start.context);
+-//			e.resetCharBitmap(db.getBitmapFromUri(e.getImageUri(), Start.getPageNum())
+-//					, e.getMatrix(), e.getImageUri());
+-			
+-			float[] f = new float[9];
+-			e.getMatrix().getValues(f);
+-			float scale = f[0];
+-			Uri uri = e.getImageUri();
+-	        ContentResolver cr = Start.context.getContentResolver(); 
+-	        try { 
+-	            Bitmap bitmap;
+-	            try {
+-	            	BitmapFactory.Options options = new BitmapFactory.Options();
+-	                options.inJustDecodeBounds = true;
+-//	                bitmap = BitmapFactory.decodeStream(cr.openInputStream(uri), new Rect(-1,-1,-1,-1), options); //此时返回bm为空
+-	                bitmap = BitmapFactory.decodeStream(new FileInputStream(new File(uri.getPath())), new Rect(-1,-1,-1,-1), options); //此时返回bm为空
+-	                BitmapCount.getInstance().createBitmap("CursorScaleMode touch_up decodeStream");
+-	                
+-	                options.inJustDecodeBounds = false;
+-	                 //缩放比
+-	                int be = 1;
+-	                if(options.outHeight > (300 * scale) || options.outWidth > (300*scale) ){
+-	                    be = options.outHeight / (int)(300 * scale);
+-	                    int t = options.outWidth / (int)(300 * scale);
+-	                    if(be < t )
+-	                    	be = t;
+-	                }
+-	                options.inSampleSize = be;
+-
+-	                Log.e("image", "----------------------------------4");
+-	                bitmap=BitmapFactory.decodeStream(
+-	                		new FileInputStream(
+-	                				new File(Start.getStoragePath() + "/calldir/free_" + Start.getPageNum() + "/" + uri.getLastPathSegment())),
+-	                				new Rect(-1,-1,-1,-1),options);
+-	                BitmapCount.getInstance().createBitmap("CursorScaleMode touch_up decodeStream");
+-	                Log.e("resetPic", "----------------------------------5");		
+-				} catch (OutOfMemoryError o) {
+-					Log.e("image", "----------------------------------6");
+-					// TODO: handle exception
+-					Log.e("image", "decode file failed ");
+-					bitmap = Start.OOM_BITMAP;
+-				}
+-	            Bitmap myBitmap;
+-	            	try {
+-	            		Log.e("image", "----------------------------------7 :" + scale);
+-	            		//2.3可以  2.5崩溃
+-//						myBitmap = Start.createScaledBitmap(bitmap, (int)(280), (int)(280));
+-	            		if(!bitmap.isRecycled()){
+-	            			
+-	            		}else{
+-	                		bitmap = Start.OOM_BITMAP;
+-	                		
+-	            		}
+-	            		
+-//	            		myBitmap = Start.createScaledBitmap(bitmap, (int)(280*scale), (int)(280*scale));
+-	            		myBitmap = Start.createScaledBitmap(bitmap, (int)(280*scale), (int)(280*scale));
+-	            		
+-					} catch (OutOfMemoryError o) {
+-						Log.e("image", "scale bitmap failed ");
+-						myBitmap = Start.OOM_BITMAP;
+-					}
+-					if(bitmap == Start.OOM_BITMAP){
+-						
+-					}else{
+-						bitmap.recycle();
+-						BitmapCount.getInstance().recycleBitmap("CursorScaleMode onDestroy touch_up");	
+-					}
+-	            if(myBitmap == null){
+-					//放大的过大,不做处理
+-				}else{
+-					Matrix matrix = new Matrix();
+-					matrix.setScale(scale, scale);
+-					e.resetCharBitmap(myBitmap , matrix,null);
+-				}
+-	            
+-	        } catch (FileNotFoundException ee) { 
+-	        
+-	            Log.e("image", ee.getMessage(),ee); 
+-	        } 
+-		
++			e.resetCharBitmap(bitmap , null,null);
++			if(bitmap != null){
++				e.setNomalStatus("reset success " + identity);
++				Log.e("resetImage", "bitmap != null " + identity + " nomral");
++			}
++			else{
++				Log.e("resetImage", "bitmap == null not nomalStatus " + identity);
++				e.setRecycleStatus("reset failed " + identity);
++			}
+ 	        return e;
+-			
+ 		}
+ 		
+ 	};
+@@ -2721,7 +2660,7 @@ public class EditableCalligraphy implements Command{
+ 				
+ 				tempB = vitem.charBitmap;
+ 				if(!tempB.isRecycled()){
+-					tempB.recycle();
++					vitem.recycleBitmap();
+ 					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy ResetChar tempB");
+ 				}
+ 				
+@@ -2840,7 +2779,7 @@ public class EditableCalligraphy implements Command{
+ //						e.getWord().recycle();
+ //						Log.v("saveword", "word null:" + (e.getWord() == null));
+ //						Log.v("saveword", " isRecycle:" + e.getWord().isRecycle());
+-						e.getCharBitmap().recycle();
++						e.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmap" + i);
+ 						
+ //						workList.remove(iden);
+@@ -2849,7 +2788,7 @@ public class EditableCalligraphy implements Command{
+ 					}
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem
+ 							&&(e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+-						e.getCharBitmap().recycle();
++						e.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmap" + i);
+ 						Log.v("flipper", "  !!recycleCharListBitmap " + i);
+ //						workList.remove(iden);
+@@ -2913,7 +2852,7 @@ public class EditableCalligraphy implements Command{
+ 							EditableCalligraphyItem.getType(e.getCharType()));
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.CharsWithStroke
+ 							&& (e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+-						e.getCharBitmap().recycle();
++						e.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmapBottom Types.CharsWithStroke");
+ 						Log.v("flipper", "  !!recycleCharListBitmapBottom " + i);
+ //						workList.remove(iden);
+@@ -2922,7 +2861,8 @@ public class EditableCalligraphy implements Command{
+ 					}
+ 					if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem
+ 							&&(e.getCharBitmap() != null) && !e.getCharBitmap().isRecycled()){
+-						e.getCharBitmap().recycle();
++						e.recycleBitmap();
++						Log.e("time", "start recycle --------------");
+ 						BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmapBottom Types.ImageItem");
+ 						Log.v("flipper", "  !!recycleCharListBitmapBottom " + i);
+ //						workList.remove(iden);
+@@ -2995,12 +2935,27 @@ public class EditableCalligraphy implements Command{
+ 	
+ 	public void preUpdate(Bitmap m,boolean flip)
+ 	{
++		
++		bottomflag = true;
++		recycleable = false;
++		
++		
++		
+ 		Matrix matrix;
+ 		if(Start.c == null)
+ 			matrix = Start.m;
+ 		else
+ 			matrix = Start.c.view.getMMMatrix();
+ 		
++		
++		
++		
++		if(available.getDirect() == 1){
++			return;
++		}
++		
++		Paint p = new Paint();
++		
+ 		matrix.getValues(values);
+ 		scale = values[0];
+ 		
+@@ -3017,6 +2972,9 @@ public class EditableCalligraphy implements Command{
+ 		float tt = 0;
+ 		float maxHeight=0;
+ 		
++		if(charList.size() != 0){
++			mv.addRowNumber(available.getControltype());
++		}
+ 		
+ 		for(int i =0; i < charList.size() ; i++){
+ 			String iden = "a" + available.getAid() + "i" + i;
+@@ -3029,20 +2987,22 @@ public class EditableCalligraphy implements Command{
+ 			try {
+ 				e = charList.get(i);
+ 			} catch (ClassCastException e2) {
+-				// TODO: handle exception
+ 				Log.e("audio", "audioException",e2);
+ 				continue;
+ 			}
+ 			
+-			
+ 			e.getMatrix().getValues(values);
+ 			
+ 			if(EditableCalligraphyItem.getType(e.getCharType()) == Types.CharsWithoutStroke || 
+ 					EditableCalligraphyItem.getType(e.getCharType()) == Types.AUDIO ||
+ 					EditableCalligraphyItem.getType(e.getCharType()) == Types.VEDIO){
+ 				dScale /= values[0];    //当前缩放比例，除以字体生成时的缩放比例，得到应该显示的缩放比例
+-			}else
++			}else if(e.type == Types.ImageItem){
++				dScale = values[0];
++			}
++			else{
+ 				dScale = 1;//矢量字体，不需要缩放
++			}
+ 			
+ 			tt = values[0];//字体生成时的缩放比例
+ 			
+@@ -3055,6 +3015,7 @@ public class EditableCalligraphy implements Command{
+ 					x = start_x;
+ 					y += maxHeight;
+ 					maxHeight=0;
++					mv.addRowNumber(available.getControltype());
+ 				}else{
+ 					continue;
+ 				}
+@@ -3064,8 +3025,8 @@ public class EditableCalligraphy implements Command{
+ 				continue;
+ 			}
+ 			if(EditableCalligraphyItem.getType(e.getCharType()) == Types.ImageItem){
+-				if(maxHeight < e.getHeight()){
+-					maxHeight = e.getHeight();
++				if(maxHeight < e.getHeight() * dScale){
++					maxHeight = e.getHeight() * dScale;
+ 					int tem = 0;
+ 					if(maxHeight % (int)(linespace * scale) != 0){
+ 						tem = (int) (maxHeight / (int)(linespace * scale));
+@@ -3076,10 +3037,17 @@ public class EditableCalligraphy implements Command{
+ 				}
+ 			}
+ 			
++			if(i == this.currentpos){
++				//光标被改变到此位置。 绘制光标
++				setCursorXY(x, y);
++				dispearPreCursor();
++			} 
+ 			if(e.type == EditableCalligraphyItem.Types.EndofLine){
++				e.setCurPos(x, y);
+ 				x = start_x;
+ 				y += maxHeight;
+ 				maxHeight=0;
++				mv.addRowNumber(available.getControltype());
+ 				continue;
+ 			}
+ 			
+@@ -3089,10 +3057,6 @@ public class EditableCalligraphy implements Command{
+ 				
+ 				//画所有的字
+ 				Bitmap tmp = e.getCharBitmap();
+-				if(tmp == null){
+-					//图片有可能为空
+-					System.out.println(" !!!null:" + ( tmp == null)); 
+-				}else{
+ 					
+ 					float pad = 0.0f;
+ 					
+@@ -3105,9 +3069,12 @@ public class EditableCalligraphy implements Command{
+ 					}
+ 					if(e.getHeight()/tt < CursorDrawBitmap.mIntervalHeight) {
+ 						pad = (CursorDrawBitmap.mIntervalHeight  - 
+-								tmp.getHeight()/tt)  /1.2f;
++								e.getHeight()/tt)  /1.2f;
++					}
++					if(e.type == Types.ImageItem){
++						if(e.getWidth()* dScale > Start.SCREEN_WIDTH)
++							x += e.getFlipDstX();
+ 					}
+-					
+ 					Matrix mm = new Matrix();
+ 					if(flip_dst < BaseBitmap.TITLE_HEIGHT){
+ 						mm.postTranslate(x,y+pad);//test -70
+@@ -3116,25 +3083,31 @@ public class EditableCalligraphy implements Command{
+ 						mm.postTranslate(x,t);//test -70
+ 						
+ 					}
+-					
+-					//是图片不缩放,矢量字体也不缩放
+-					if(e.getCharType() == 7 && mv.getTouchMode() != mv.getCursorScaleMode()){
+-						mm.preScale(1, 1);
+-					}
+ 					if(e.type == Types.CharsWithoutStroke || 
+ 							e.type == Types.AUDIO ||
+-							e.type == Types.VEDIO){
++							e.type == Types.VEDIO ||
++							e.type == Types.ImageItem){
+ 						mm.preScale(dScale, dScale);
+ 					}
+-			}//end null if
++					
++					mm.getValues(recycleValues);
++					
++				
+ 			}//end  if
+ 			if(e != null){
+-			x += e.getWidth()*dScale  + HMargin;
++			if(e.type == Types.ImageItem)
++				e.setCurPos(x, y);
++				x += e.getWidth()*dScale  + HMargin;
+ 			}
+ 		}//end for
++		if( this.currentpos >= charList.size()){
++			setCursorXY(x, y);
++			dispearCurrentCursor();
++		}
+ 		
+ 		if(available.getAid() == 4){
+ 			bottomY = y + (int)maxHeight;
++			setFlipDst(false,"update");//绕圈儿鸟
+ 		}
+ 		
+ 	}
+@@ -3167,8 +3140,8 @@ public class EditableCalligraphy implements Command{
+ 			r = new Rect(
+ 					e.getCurPosX() ,
+ 					e.getCurPosY()- flip_dst - cursorMargin,
+-					(int)(e.getCurPosX()+ (e.getWidth()) + HMargin),
+-					(int)(e.getCurPosY()+ e.getHeight() + VMargin*scale - flip_dst) + cursorMargin);
++					(int)(e.getCurPosX()+ (e.getWidth() * initScale) + HMargin),
++					(int)(e.getCurPosY()+ e.getHeight() * initScale + VMargin*scale - flip_dst) + cursorMargin);
+ 			if(r.contains((int)x, (int)y)){
+ 				return e;
+ 			}
+diff --git a/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java b/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
+index b5900f1..9e50615 100644
+--- a/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
++++ b/src/com/jinke/calligraphy/app/branch/EditableCalligraphyItem.java
+@@ -19,6 +19,8 @@ import android.util.Log;
+ 
+ public class EditableCalligraphyItem implements Serializable{
+ 	public static enum Types {ImageItem, CharsWithoutStroke, Space,EnSpace, EndofLine, CharsWithStroke, INVAL, VEDIO,AUDIO,Unkown};
++	public static enum ItemStatus {NORMAL,RECYCLED,QUEUED};
++	public ItemStatus itemStatus = ItemStatus.NORMAL;;
+ 	public int MinHeight = 10;//作为行距使用，但是不应该在此设置，使用EditableCalligraphy里的linespace替代。 byjinyang
+ 	public final static int MinWidth = 40;
+ 	public Types type;
+@@ -41,6 +43,34 @@ public class EditableCalligraphyItem implements Serializable{
+ 	private Bitmap playingBitmap;
+ 	private Bitmap stopBitmap;
+ 	
++	public ItemStatus getStatus(){
++		return itemStatus;
++	}
++	public void setNomalStatus(String iden){
++		
++		if(charBitmap!= null && !charBitmap.isRecycled()){
++			itemStatus = ItemStatus.NORMAL;
++			Log.e("itemstatus", iden + " set NORMAL status");	
++		}else{
++			Log.e("itemstatus", iden + " set NORMAL status error");
++			setRecycleStatus(iden);
++		}
++	}
++	public void setRecycleStatus(String iden){
++		
++		if(charBitmap!= null && !charBitmap.isRecycled()){
++			Log.e("itemstatus", iden + " set RECYCLED status error");	
++		}else{
++			itemStatus = ItemStatus.RECYCLED;
++			Log.e("itemstatus", iden + " set RECYCLED status");
++		}
++			
++	}
++	public void setQueueStatus(String iden){
++		Log.e("itemstatus", iden + " set QUEUED status");
++		itemStatus = ItemStatus.QUEUED;
++	}
++	
+ 	public void setStopBitmap(){
+ 		this.stopBitmap = charBitmap;
+ 	}
+@@ -118,7 +148,10 @@ public class EditableCalligraphyItem implements Serializable{
+ 	public EditableCalligraphyItem(Bitmap m)
+ 	{
+ 		this();
+-		this.charBitmap = m;
++		if(m != null)
++			this.charBitmap = m;
++		else
++			this.charBitmap = null;
+ 		if(m != null){
+ 			this.width = m.getWidth();
+ 			this.height = m.getHeight();
+@@ -209,10 +242,24 @@ public class EditableCalligraphyItem implements Serializable{
+ 	}
+ 	public int getWidth()
+ 	{
++		if(type == Types.ImageItem){
++			if(charBitmap == null){
++				return 500;
++			}
++			if(width < 100)
++				return 500;
++		}
+ 		return this.width;
+ 	}
+ 	public int getHeight()
+ 	{
++		if(type == Types.ImageItem){
++			if(charBitmap == null){
++				return 580;
++			}
++			if(height < 100)
++				return 580;
++		}
+ 		return this.height;
+ 	}
+ 	public void setCurPos(int x, int y)
+@@ -405,4 +452,8 @@ public class EditableCalligraphyItem implements Serializable{
+ 	public void setNotWifiOrAdhoc(){
+ 		wifiOrAdhoc = false;
+ 	}
++	public void recycleBitmap(){
++		if(charBitmap != null)
++			charBitmap.recycle();
++	}
+ }
+diff --git a/src/com/jinke/calligraphy/app/branch/MyView.java b/src/com/jinke/calligraphy/app/branch/MyView.java
+index f2a6c91..9291847 100644
+--- a/src/com/jinke/calligraphy/app/branch/MyView.java
++++ b/src/com/jinke/calligraphy/app/branch/MyView.java
+@@ -496,6 +496,7 @@ public class MyView extends View implements
+ 			if (drawStatus == STATUS_DRAW_FREE) {
+ 				touchMode = freeDragMode;
+ 			} else {
++				touchMode.clear();
+ 				touchMode = cursorScaleMode;
+ 			}
+ 			touchMode.touch_action_pointer_down(event);
+@@ -1050,7 +1051,10 @@ public class MyView extends View implements
+ 
+ 				in.close();
+ 				out.close();
+-				return Uri.fromFile(newFile);
++				
++				return Uri.parse("file://" + newFile.getPath());
++				
++//				return Uri.fromFile(newFile);
+ 
+ 			} catch (FileNotFoundException e) {
+ 				// TODO Auto-generated catch block
+diff --git a/src/com/jinke/calligraphy/app/branch/Start.java b/src/com/jinke/calligraphy/app/branch/Start.java
+index 8441a8a..c66a9ed 100644
+--- a/src/com/jinke/calligraphy/app/branch/Start.java
++++ b/src/com/jinke/calligraphy/app/branch/Start.java
+@@ -73,6 +73,7 @@ import com.jinke.pdf.BitmapToFile;
+ import com.jinke.rloginservice.IReadingsLoginService;
+ import com.jinke.rloginservice.UserInfo;
+ import com.jinke.single.BitmapCount;
++import com.jinke.single.BitmapUtils;
+ import com.jinke.single.ScaleSave;
+ 
+ public class Start extends Activity{
+@@ -1542,67 +1543,14 @@ public static Handler backupHandler = new Handler() {
+ };
+ 
+ public static void createAndSavePic(Uri uri){
+-	ContentResolver cr = context.getContentResolver();
+-
+-	try {
+-		Bitmap bitmap;
+-
+-		try {
+-			BitmapFactory.Options options = new BitmapFactory.Options();
+-			options.inJustDecodeBounds = true;
+-			bitmap = BitmapFactory.decodeStream(
+-					cr.openInputStream(uri), new Rect(-1, -1, -1, -1),
+-					options); // 此时返回bm为空
+-			BitmapCount.getInstance().createBitmap("Start createAndSavePic decodeStream");
+-			
+-			options.inJustDecodeBounds = false;
+-			// 缩放比
+-			int be = 1;
+-			if (options.outHeight > 300 || options.outWidth > 300) {
+-				be = options.outHeight / 300;
+-				int t = options.outWidth / 300;
+-				if (be < t)
+-					be = t;
+-			}
+-			options.inSampleSize = be;
+-
+-			bitmap = BitmapFactory.decodeStream(
+-					cr.openInputStream(uri), new Rect(-1, -1, -1, -1),
+-					options);
+-			BitmapCount.getInstance().createBitmap("Start createAndSavePic decodeStream");
+-			
+-		} catch (OutOfMemoryError o) {
+-
+-			// TODO: handle exception
+-			Log.e("addpic", "decode file failed ");
+-			bitmap = Start.OOM_BITMAP;
+-		}
+-		Bitmap myBitmap;
+-
+-		if (bitmap.getWidth() < 300 && bitmap.getHeight() < 300) {
+-			myBitmap = bitmap;
+-		} else {
+-			try {
+-
+-				myBitmap = createScaledBitmap(bitmap, 280, 280);
+-			} catch (OutOfMemoryError o) {
+-				// TODO: handle exception
+-				Log.e("addpic", "scale bitmap failed ");
+-				myBitmap = Start.OOM_BITMAP;
+-			}
+-			bitmap.recycle();
+-			BitmapCount.getInstance().recycleBitmap("Start createAndSavePic bitmap");
+-		}
+-
++//		Bitmap myBitmap = BitmapUtils.getBitmapFromUri(uri);
++		Bitmap myBitmap = BitmapUtils.getInstance().getBitmapFromUri(uri);
+ 		/*
+ 		 * 已经存到本地了，不用再存uri，只需要保存文件名
+ 		 */
+ 		c.view.cursorBitmap.insertImageBitmap(myBitmap, uri);
+ 
+-	} catch (FileNotFoundException e) {
+-
+-		Log.e("Exception", e.getMessage(), e);
+-	}
++	
+ }
+ 
+ @Override
+diff --git a/src/com/jinke/calligraphy/app/branch/WorkQueue.java b/src/com/jinke/calligraphy/app/branch/WorkQueue.java
+index 550ff36..6b08f81 100644
+--- a/src/com/jinke/calligraphy/app/branch/WorkQueue.java
++++ b/src/com/jinke/calligraphy/app/branch/WorkQueue.java
+@@ -10,8 +10,10 @@ public class WorkQueue {
+ 
+ 	private final static int nThreads = 3;
+ 	private  static int QUEUE_SIZE = 300;
+-	private final PoolWorker[] threads;
++	private static int IMAGE_QUEUE_SIZE = 2;
++	private final Thread[] threads;
+ 	private final LinkedList queue;
++	private final LinkedList imageQueue;
+ 	
+ 	private static WorkQueue workQueue = null;
+ 	private boolean flipping = true;
+@@ -38,10 +40,23 @@ public class WorkQueue {
+ 	private WorkQueue(int nThreads){
+ 		
+ 		this.queue = new LinkedList();
+-		threads = new PoolWorker[nThreads];
++		this.imageQueue = new LinkedList();
++		threads = new Thread[nThreads];
+ 		for(int i=0;i<nThreads;i++){
+-			threads[i] = new PoolWorker();
+-			threads[i].start();
++			switch (i) {
++			case 0:
++			case 1:
++				threads[i] = new PoolWorker();
++				threads[i].start();
++				break;
++			case 2:
++				threads[i] = new ImagePoolWorker();
++				threads[i].start();
++				break;
++			default:
++				break;
++			}
++			
+ 		}
+ 	}
+ 	
+@@ -52,26 +67,48 @@ public class WorkQueue {
+ 		return workQueue;
+ 	}
+ 	
+-	public void execute(Runnable r){
++	public boolean execute(Runnable r){
+ 		synchronized (queue) {
+ 			if(queue.contains(r)){
+-				Log.v("workqueue", "contains");
++				Log.v("workqueueadd", "contains r----------------" + queue.size());
++				return false;
+ 			}else{
+-				Log.v("workqueue", "not contains");
+-				
+ 				if(queue.size() > QUEUE_SIZE){
+ 					queue.removeFirst();
+ 				}
+ 				queue.addLast(r);
++				Log.v("workqueueadd", "not contains r--------------" + queue.size());
++				return true;
+ 			}
+-				Log.v("flip", "size:" + queue.size());
++				
+ 		}
+ 	}
+-	
+-	public void removeWork(Runnable r){
+-		synchronized (queue) {
+-			queue.remove(r);
+-				Log.v("flipRemove", "contains r------------------" + queue.size());
++	public boolean executeImage(Runnable r){
++		synchronized (imageQueue) {
++			if(imageQueue.contains(r)){
++				Log.v("workqueueadd", "contains r----------------" + imageQueue.size());
++				return false;
++			}else{
++				if(imageQueue.size() >IMAGE_QUEUE_SIZE){
++					imageQueue.removeFirst();
++				}
++				imageQueue.addLast(r);
++				Log.v("workqueueadd", "not contains r--------------" + imageQueue.size());
++				return true;
++			}
++				
++		}
++	}
++
++	public boolean removeWork(Runnable r){
++		synchronized (imageQueue) {
++			if(imageQueue.remove(r)){
++				Log.v("workqueueremove", "remove r------------------" + imageQueue.size());
++				return true;
++			}
++			else
++				Log.v("workqueueremove", "remove r  not contains------------------" + imageQueue.size());
++			return false;
+ //			queue.notify();
+ 		}
+ 	}
+@@ -86,23 +123,54 @@ public class WorkQueue {
+ 					while(queue.isEmpty()){
+ 						try {
+ 							Log.e("queue", "wait");
+-							
+-							
+-//							Start.c.flipHandler.sendEmptyMessage(0);
+ 							end = System.currentTimeMillis();
+ 							Log.e("workqueuetime", "-------------------------" +
+ 									"--------run finish use time:" + (end - start));
+ 							queue.wait();
+-							
+ 						} catch (InterruptedException e) {
+-							// TODO Auto-generated catch block
+ 							e.printStackTrace();
+ 						}
+ 					}//end while
+ 					r = (Runnable)queue.removeFirst();
+ 					if(queue.isEmpty()){
+-						Start.c.flipHandler.sendEmptyMessage(0);
+-						Log.v("flipupdate", "queue finish");
++//						Log.e("time", "queue empty begin update");
++//						Start.c.flipHandler.sendEmptyMessage(0);
++//						Log.v("flipupdate", "queue finish");
++					}
++				}
++				try {
++					r.run();
++				} catch (RuntimeException e) {
++					// TODO: handle exception
++				}
++				
++			}
++		}
++		
++	}
++	private	class ImagePoolWorker extends Thread{
++		Runnable r;
++		@Override
++		public void run() {
++			// TODO Auto-generated method stub
++			while(true){
++				synchronized (imageQueue) {
++					while(imageQueue.isEmpty()){
++						try {
++							Log.e("imagequeue", "wait");
++							end = System.currentTimeMillis();
++							Log.e("workqueuetime", "-------------------------" +
++									"--------run finish use time:" + (end - start));
++							imageQueue.wait();
++						} catch (InterruptedException e) {
++							e.printStackTrace();
++						}
++					}//end while
++					r = (Runnable)imageQueue.removeFirst();
++					if(imageQueue.isEmpty()){
++//						Log.e("time", "queue empty begin update");
++//						Start.c.flipHandler.sendEmptyMessage(0);
++//						Log.v("flipupdate", "queue finish");
+ 					}
+ 				}
+ 				try {
+@@ -124,10 +192,13 @@ public class WorkQueue {
+ 		synchronized (queue) {
+ 			start = System.currentTimeMillis();
+ 			Log.e("workqueuetime", "queue size:" + queue.size() + " start at:" + start);
+-//			workList.clear();
+ 			if(queue!= null && queue.size() != 0)
+ 				queue.notifyAll();
+ 		}
++		synchronized (imageQueue) {
++			if(imageQueue != null && imageQueue.size() != 0)
++				imageQueue.notifyAll();
++		}
+ 	}
+ 	
+ 	
+diff --git a/src/com/jinke/calligraphy/database/BitmapHelper.java b/src/com/jinke/calligraphy/database/BitmapHelper.java
+index 1077ef0..e43e0a8 100644
+--- a/src/com/jinke/calligraphy/database/BitmapHelper.java
++++ b/src/com/jinke/calligraphy/database/BitmapHelper.java
+@@ -31,8 +31,15 @@ public class BitmapHelper {
+ 			return null;
+ 		}
+ 
+-		bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+-		return out.toByteArray();
++		bmp.compress(Bitmap.CompressFormat.PNG, 10, out);
++		
++		byte[] array = null;
++		try {
++			array = out.toByteArray();
++		} catch (OutOfMemoryError e) {
++			Log.e("arrayoom", "" , e);
++		}
++		return array;
+ 	}
+ 	
+ 	public static Bitmap getBitmapFromUri(Uri uri , int pageNum){
+diff --git a/src/com/jinke/calligraphy/database/CalligraphyDB.java b/src/com/jinke/calligraphy/database/CalligraphyDB.java
+index 2a396bc..fc7d619 100644
+--- a/src/com/jinke/calligraphy/database/CalligraphyDB.java
++++ b/src/com/jinke/calligraphy/database/CalligraphyDB.java
+@@ -145,7 +145,7 @@ public class CalligraphyDB {
+ 				break;
+ 			}
+ 			
+-			
++			byte[] bitmapChars = null;
+ 			
+ 			Bitmap charBitmap = eItem.getCharBitmap();
+ 			float flipdstx = 0;
+@@ -179,13 +179,17 @@ public class CalligraphyDB {
+ 						){
+ 					
+ 				}else{
++					bitmapChars = BitmapHelper.bitmapDecode(charBitmap);
+ 					initalValues.put("charBitmap",
+-							BitmapHelper.bitmapDecode(charBitmap));
++							bitmapChars);
+ 				}
+-			} catch (IOException ex) {
++			} catch (OutOfMemoryError ex) {
+ 				// TODO Auto-generated catch block
+ 				ex.printStackTrace();
++			} catch (IOException e) {
++				
+ 			}
++			bitmapChars = null;
+ 			long result = db.insert(WORD_TABLE, null, initalValues);
+ 		return !(result == -1);
+ 	}
+@@ -215,6 +219,7 @@ public class CalligraphyDB {
+ 		Log.v("startinit", "------available_id:" + available_id + " size:" + cursor.getCount() 
+ 				+ " pagenum:" + pagenum);
+ 		int count = 0;
++		int imageCount = 0;
+ 		for(cursor.moveToFirst();!cursor.isAfterLast();cursor.moveToNext()){
+ 			template_id = cursor.getInt(cursor.getColumnIndex("template_id"));
+ 			itemid = cursor.getInt(cursor.getColumnIndex("itemid"));
+@@ -265,16 +270,20 @@ public class CalligraphyDB {
+ 				item.setItemId(itemid);
+ 			}else if(type == Types.ImageItem){
+ 				Bitmap picBitmap = null;
+-				if(attr != null){
+-					try{
+-						picBitmap =  BitmapFactory.decodeByteArray(attr, 0,
+-								attr.length);
+-						
+-					} catch (OutOfMemoryError e) {
+-						// TODO: handle exception
+-						picBitmap = Start.OOM_BITMAP;
++				if(imageCount < 2){
++					if(attr != null){
++						try{
++							picBitmap =  BitmapFactory.decodeByteArray(attr, 0,
++									attr.length);
++							
++						} catch (OutOfMemoryError e) {
++							// TODO: handle exception
++							picBitmap = Start.OOM_BITMAP;
++							Log.e("time", "calligraphyDB image oom a" + available_id + " i" + itemid );
++						}
+ 					}
+-				}
++				}else
++					picBitmap = null;
+ 				
+ 				if(type == Types.ImageItem){
+ 					if(op_type == OP_ADD_WORD)
+@@ -282,7 +291,7 @@ public class CalligraphyDB {
+ 					else
+ 						ImageLimit.instance().deleteImageCount();
+ 				}
+-				
++//				item.setRecycleStatus("from databases failed");
+ 				item = new EditableCalligraphyItem(picBitmap);
+ 				item.setType(type);
+ 				item.setFlipDstX(flipdstx);
+@@ -298,14 +307,14 @@ public class CalligraphyDB {
+ 								attr.length);
+ 					} catch (OutOfMemoryError e) {
+ 						// TODO: handle exception
+-						picBitmap = Start.OOM_BITMAP;
++//						picBitmap = Start.OOM_BITMAP;
++						picBitmap = null;
++						item.setRecycleStatus("from databases failed");
+ 					}
+ 				}
+ 				
++				
+ 				item = new EditableCalligraphyItem(picBitmap);
+-				if("".equals(uri)){
+-				}else{
+-				}
+ 				item.setType(type);
+ 				item.setItemId(itemid);
+ 				item.setImageUri(Uri.parse(uri));
+@@ -314,15 +323,12 @@ public class CalligraphyDB {
+ 					item.setStopBitmap();
+ 			}
+ 			
+-//			Start.c.view.saveFile(
+-//					item.getCharBitmap(), 
+-//					"/extsd/bitmap/a" + available_id+ "i" + item.getItemID(),
+-//					"PNG");
++			attr = null;
+ 			
+ 			if(count > INIT_WORD_COUNT){
+ 				Log.v("recyclebitmap", "init count:" + count + "bitmap:" + (item.getCharBitmap() == null));
+ 				if(item.getCharBitmap() != null){
+-					item.getCharBitmap().recycle();
++					item.recycleBitmap();
+ 					BitmapCount.getInstance().recycleBitmap("EditableCalligraphy recycleCharListBitmap");
+ 					Log.v("recyclebitmap", "init count:" + count + " recycle!!!!");
+ 				}
+@@ -363,7 +369,7 @@ public class CalligraphyDB {
+ 				}
+ 				
+ 				if(removeItem.getCharBitmap() != null){
+-					removeItem.getCharBitmap().recycle();
++					removeItem.recycleBitmap();
+ 				}
+ 			default:
+ 				break;
+@@ -407,14 +413,6 @@ public class CalligraphyDB {
+ 		ContentValues initalValues = new ContentValues();
+ 		initalValues.put("matrix", item.getMatrix().toString());
+ 		
+-		try {
+-			initalValues.put("charBitmap",
+-					BitmapHelper.bitmapDecode(item.getCharBitmap()));
+-		} catch (IOException e) {
+-			// TODO Auto-generated catch block
+-			e.printStackTrace();
+-		}
+-		
+ 		boolean flag = this.db.update(WORD_TABLE, initalValues, "pagenum = ? and available_id = ? and itemid = ?",
+ 				new String[] { ""+page,""+aid,""+itemid }) > 0;
+ 				Log.e("update", "pagenum = " + page 
+diff --git a/src/com/jinke/calligraphy/touchmode/CursorScaleMode.java b/src/com/jinke/calligraphy/touchmode/CursorScaleMode.java
+index 32aae98..770f410 100644
+--- a/src/com/jinke/calligraphy/touchmode/CursorScaleMode.java
++++ b/src/com/jinke/calligraphy/touchmode/CursorScaleMode.java
+@@ -49,6 +49,10 @@ public class CursorScaleMode implements TouchMode{
+     private EditableCalligraphyItem picItem = null;
+     int scaleCount = 0;
+     
++    private static final float PRESSURE_THRESHOLD = 0.67f;
++    private float mCurrPressure = 0;
++    private float mPrevPressure = 0;
++    
+     Handler mHandler = new Handler(){
+     	public void handleMessage(android.os.Message msg) {
+     		do_touch_up();
+@@ -103,15 +107,19 @@ public class CursorScaleMode implements TouchMode{
+ //		}
+ 		if(totallyUP){
+ 			
+-			savedMatrix.set(mmMatrix);
+-			start_distance = distanceMulti(event);
+-			isPicture(event);
+-			if(isPicScale){
+-				mmMatrix.set(picItem.getMatrix());
++			mCurrPressure = event.getPressure(0) + event.getPressure(1);
++			if (mCurrPressure / mPrevPressure > PRESSURE_THRESHOLD) {
+ 				savedMatrix.set(mmMatrix);
+-				touchDownMatrix.set(picItem.getMatrix());
+-				Log.e("ispic", "set touchDown matrix:" + picItem.getMatrix().toShortString());
++				start_distance = distanceMulti(event);
++				isPicture(event);
++				if(isPicScale){
++					mmMatrix.set(picItem.getMatrix());
++					savedMatrix.set(mmMatrix);
++					touchDownMatrix.set(picItem.getMatrix());
++					Log.e("ispic", "set touchDown matrix:" + picItem.getMatrix().toShortString());
++				}	 
+ 			}
++			mPrevPressure = mCurrPressure;
+ 		}
+ 		
+ 	}
+@@ -142,9 +150,7 @@ public class CursorScaleMode implements TouchMode{
+ 	public void touch_up(MotionEvent event) {
+ 		// TODO Auto-generated method stub
+ 		Log.e("touchupdelay", "touch up");
+-		
+ 		do_touch_up();
+-		
+ 	}
+ 	private void do_touch_up(){
+ 		Start.status.modified("scaleImage");
+@@ -153,7 +159,6 @@ public class CursorScaleMode implements TouchMode{
+ 		float scale = values[0];
+ 		
+ 		if(isPicScale){
+-			resetPicItem(picItem);
+ 			
+ 			CalligraphyDB.getInstance(Start.context).
+ 				updatePictrueItem(Start.getPageNum(), 3, picItem.getItemID(), picItem);
+@@ -162,17 +167,6 @@ public class CursorScaleMode implements TouchMode{
+ 			for(int i=0;i<view.cursorBitmap.listEditableCalligraphy.size();i++){
+ 				EditableCalligraphy e = view.cursorBitmap.listEditableCalligraphy.get(i);
+ 				e.scaleResetCharList(scale);
+-				
+-				LinkedList<EditableCalligraphyItem> charlist = e.getCharsList();
+-//				for(int j=0;j<charlist.size();j++){
+-//					EditableCalligraphyItem item = charlist.get(j);
+-//					if(item.getCharBitmap() != null && !item.getCharBitmap().isRecycled())
+-//					if(item.getCharType() == 7 
+-//							|| item.getCharType() == 8 
+-//								||	item.getCharType() == 9 ){
+-//						resetPicItem(scale,item);
+-//					}
+-//				}
+ 			}
+ 		}
+ 		
+@@ -186,100 +180,6 @@ public class CursorScaleMode implements TouchMode{
+ 		WorkQueue.getInstance().endFlipping();
+ 	}
+ 
+-	public void resetPicItem(EditableCalligraphyItem item) {
+-		// TODO Auto-generated method stub
+-		
+-		float[] f = new float[9];
+-		item.getMatrix().getValues(f);
+-		Log.e("ispic", "item id:" + item.getItemID() + " matrix:" + item.getMatrix().toShortString());
+-		float scale = f[0];
+-		Uri uri = item.getImageUri();
+-        ContentResolver cr = Start.context.getContentResolver(); 
+-        try { 
+-            Bitmap bitmap;
+-            try {
+-            	BitmapFactory.Options options = new BitmapFactory.Options();
+-                options.inJustDecodeBounds = true;
+-//                bitmap = BitmapFactory.decodeStream(cr.openInputStream(uri), new Rect(-1,-1,-1,-1), options); //此时返回bm为空
+-                bitmap = BitmapFactory.decodeStream(new FileInputStream(new File(uri.getPath()))
+-                		, new Rect(-1,-1,-1,-1), options); //此时返回bm为空
+-                BitmapCount.getInstance().createBitmap("CursorScaleMode touch_up decodeStream");
+-                
+-                options.inJustDecodeBounds = false;
+-                 //缩放比
+-                int be = 1;
+-                if(options.outHeight > (250 * scale) || options.outWidth > (250*scale) ){
+-                    be = options.outHeight / (int)(250 * scale);
+-                    int t = options.outWidth / (int)(250 * scale);
+-                    if(be < t )
+-                    	be = t;
+-                }
+-                options.inSampleSize = be;
+-
+-                Log.e("resetPic", "----------------------------------4");
+-                bitmap=BitmapFactory.decodeStream(
+-                		new FileInputStream(
+-                				new File(Start.getStoragePath() + "/calldir/free_" + Start.getPageNum() + "/" + uri.getLastPathSegment())),
+-                				new Rect(-1,-1,-1,-1),options);
+-                BitmapCount.getInstance().createBitmap("CursorScaleMode touch_up decodeStream");
+-                Log.e("resetPic", "----------------------------------5");		
+-			} catch (OutOfMemoryError o) {
+-				Log.e("resetPic", "----------------------------------6");
+-				// TODO: handle exception
+-				picItem.setMatrix(touchDownMatrix);
+-				Log.e("ispic", "touch up decode file failed reset matrix:" + touchDownMatrix.toShortString());
+-				Toast.makeText(Start.context, "获取原图大小时内存溢出，保持原状态", Toast.LENGTH_LONG).show();
+-				bitmap = null;
+-			}
+-			if(bitmap == null){
+-				Log.e("ispic", "resetBitmap bitmap = null return");
+-				return;
+-			}
+-            Bitmap myBitmap = null;
+-            	try {
+-            		//2.3可以  2.5崩溃
+-//					myBitmap = Start.createScaledBitmap(bitmap, (int)(280), (int)(280));
+-            		if(!bitmap.isRecycled()){
+-            			
+-            		}else{
+-                		bitmap = Start.OOM_BITMAP;
+-                		return;
+-            		}
+-            		myBitmap = Start.createScaledBitmap(bitmap, (int)(280*scale), (int)(280*scale));
+-            		
+-            		if(myBitmap == null){
+-            			myBitmap = Start.createScaledBitmap(picItem.getCharBitmap(), (int)(280*scale), (int)(280*scale));
+-            		}
+-            		
+-				} catch (OutOfMemoryError o) {
+-					
+-					
+-					myBitmap = null;
+-				}
+-				if(bitmap == Start.OOM_BITMAP){
+-					
+-				}else{
+-					bitmap.recycle();
+-					BitmapCount.getInstance().recycleBitmap("CursorScaleMode onDestroy touch_up");	
+-				}
+-            if(myBitmap == null){
+-            	picItem.setMatrix(touchDownMatrix);
+-				Log.e("ispic", "out of memory myBitmap == null resetMatrix:" + touchDownMatrix.toShortString());
+-				Toast.makeText(Start.context, "生成新图片失败，保持原状态", Toast.LENGTH_LONG).show();
+-				//放大的过大,不做处理
+-			}else{
+-				Matrix matrix = new Matrix();
+-				matrix.setScale(scale, scale);
+-				item.resetCharBitmap(myBitmap , matrix,null);
+-			}
+-            
+-        } catch (FileNotFoundException ee) { 
+-        
+-            Log.e("Exception", ee.getMessage(),ee); 
+-        } 
+-    
+-	
+-	}
+ 
+ 	@Override
+ 	public void draw(Canvas canvas) {
+@@ -290,8 +190,6 @@ public class CursorScaleMode implements TouchMode{
+ 			float touchdownf[] = new float[9];
+ 			picItem.getMatrix().getValues(touchdownf);
+ 			float s = touchdownf[0];
+-			savedMatrix.getValues(touchdownf);
+-			s = s / touchdownf[0];
+ 			nm.setScale(s, s);
+ 			int t = 0;
+ 				nm.postTranslate(view.cursorBitmap.listEditableCalligraphy.get(3).getAvailable().getStartX(),
+@@ -320,7 +218,7 @@ public class CursorScaleMode implements TouchMode{
+ 	    	if(distance > start_distance)
+ 	    		distance = start_distance + (distance - start_distance)/3;
+ 	    	else if(distance < start_distance)
+-	    		distance = start_distance - (start_distance - distance)/4;
++	    		distance = start_distance - (start_distance - distance)/3;
+ 	    	
+ 	    	mScale = (distance/start_distance);
+ 	    	float[] f = new float[9];
+@@ -328,29 +226,21 @@ public class CursorScaleMode implements TouchMode{
+ 	    	//f[0]缩放之前的比例
+ 	    	savedMatrix.getValues(f);
+ 	    	
+-	    	if(f[0] * mScale > 2){
+-//	    		mScale = 3/f[0];
++	    	if(!isPicScale && f[0] * mScale > 2){
+ 	    		Log.e("matrix", "to large mmMatrix:" + mmMatrix.toShortString());
+ 	    		return;
+ 	    	}
+-//	    	mmMatrix.postScale(mScale,mScale);
+ 	    	
+ 	    	if(isPicScale){
+ 	    		float pref[] = new float[9];
+ 	    		picItem.getMatrix().getValues(pref);
+ 	    		if(pref[0] * mScale > 3){
+-//	    			mScale = 2/pref[0];
+ 	    			return;
+ 	    		}
+-	    		
+ 	    		if(pref[0] * mScale < 0.5f){
+-	    			
+-//	    			mScale = 1f / pref[0];
+ 	    			Log.e("ispic", "缩放过小 mScale:" + mScale);
+ 	    			return;
+-	    			
+ 	    		}
+-	    			
+ 	        	mmMatrix.postScale(mScale,mScale);
+ 	    		picItem.setMatrix(mmMatrix);
+ 	    		
+@@ -366,7 +256,7 @@ public class CursorScaleMode implements TouchMode{
+ 		    	c.drawBitmap(view.cursorBitmap.bitmap, new Rect(0, 0, 600, 1024), new Rect(600,0,Start.SCREEN_WIDTH * 2,1024), new Paint());
+ 		    	
+ 		    	for(int i=0;i<view.cursorBitmap.listEditableCalligraphy.size();i++){
+-		    			view.cursorBitmap.listEditableCalligraphy.get(i).scaleUpdate(view.mBitmap, mmMatrix, f[0],isPicScale,picItem);
++		    			view.cursorBitmap.listEditableCalligraphy.get(i).scaleUpdate(view.mBitmap, mmMatrix);
+ 		    	}
+ 	    		Log.e("ispic", "----view setMatrix" + mmMatrix.toShortString() + " isPicScale:"  + isPicScale);
+ 		    	view.setMMMatirx(mmMatrix);
+diff --git a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+index ab9bc4d..21e58a1 100644
+--- a/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
++++ b/src/com/jinke/calligraphy/touchmode/HandWriteMode.java
+@@ -48,6 +48,7 @@ public class HandWriteMode implements TouchMode{
+ 				if(mCounter > 0 || isMoved || isReleased)
+ 					return;
+ 				longPressed();
++				clear();
+ 			}
+ 		};
+ 	}
+@@ -145,7 +146,8 @@ public class HandWriteMode implements TouchMode{
+ 	@Override
+ 	public void clear() {
+ 		// TODO Auto-generated method stub
+-		
++		//取消之前的点击事件
++		view.cursorBitmap.cancelWord();
+ 	}
+ 	private void isPicture(MotionEvent event) {
+ 		// TODO Auto-generated method stub
+diff --git a/src/com/jinke/calligraphy/touchmode/ImageSlideMode.java b/src/com/jinke/calligraphy/touchmode/ImageSlideMode.java
+index d8af862..91a07ab 100644
+--- a/src/com/jinke/calligraphy/touchmode/ImageSlideMode.java
++++ b/src/com/jinke/calligraphy/touchmode/ImageSlideMode.java
+@@ -46,8 +46,10 @@ public class ImageSlideMode implements TouchMode{
+ 		this.start_y = start_y;
+ 	}
+ 	public void setPicItem(EditableCalligraphyItem picItem){
++		float[] values = new float[9];
++		picItem.getMatrix().getValues(values);
+ 		this.picItem = picItem;
+-		flipMax = Start.SCREEN_WIDTH - picItem.getWidth();
++		flipMax = Start.SCREEN_WIDTH - picItem.getWidth() * values[0];
+ 	}
+ 	@Override
+ 	public void touch_action_down(MotionEvent event) {
+@@ -96,6 +98,7 @@ public class ImageSlideMode implements TouchMode{
+ 			y1 = start_y + 0.5f * mHeight;
+ 			mPath.lineTo(x1, y1);
+ 		}
++		
+ 		flip_dst += move_x - start_x;
+ 		Log.v(TAG, "flip_dst:" + flip_dst);
+ 		if(flip_dst > 0)
+@@ -118,7 +121,7 @@ public class ImageSlideMode implements TouchMode{
+ 	public void touch_up(MotionEvent event) {
+ 		// TODO Auto-generated method stub
+ 		view.setTouchMode(view.getHandWriteMode());
+-		view.getTouchMode().touch_up(event);
++//		view.getTouchMode().touch_up(event);
+ 	}
+ 
+ 	@Override
+diff --git a/src/com/jinke/calligraphy/touchmode/SideDownMode.java b/src/com/jinke/calligraphy/touchmode/SideDownMode.java
+index 986f384..520623f 100644
+--- a/src/com/jinke/calligraphy/touchmode/SideDownMode.java
++++ b/src/com/jinke/calligraphy/touchmode/SideDownMode.java
+@@ -1170,8 +1170,9 @@ public class SideDownMode implements TouchMode{
+ 		canvas.drawPath(mPath0, mPaint);
+ 		
+ 		canvas.save();
+-		canvas.clipPath(path, Region.Op.XOR);
+-		canvas.restore();
++//		canvas.clipPath(path, Region.Op.XOR);
++//		canvas.restore();
++		//android 4.0报错
+ 	}
+ 
+ 	private void rightTouchUp(float x,float y){
+diff --git a/src/com/jinke/mywidget/FlipImageView.java b/src/com/jinke/mywidget/FlipImageView.java
+index 4b01f3b..fd3065a 100644
+--- a/src/com/jinke/mywidget/FlipImageView.java
++++ b/src/com/jinke/mywidget/FlipImageView.java
+@@ -122,7 +122,7 @@ public class FlipImageView extends ImageView{
+ 	            
+ 	            	top -= TOP_LIMIT;
+ 	    	        for(int i=0;i<CursorDrawBitmap.listEditableCalligraphy.size();i++){
+-	    	        	if(top <= TOP_LIMIT+10)
++	    	        	if(top <= TOP_LIMIT+2)
+ 	    	        		CursorDrawBitmap.listEditableCalligraphy.get(i).setFlip_dst(0);
+ 	    	        	else
+ 	    	        		CursorDrawBitmap.listEditableCalligraphy.get(i).setFlip_dst(iTop);
+diff --git a/src/com/jinke/single/BitmapUtils.java b/src/com/jinke/single/BitmapUtils.java
+index a3b687a..145219a 100644
+--- a/src/com/jinke/single/BitmapUtils.java
++++ b/src/com/jinke/single/BitmapUtils.java
+@@ -7,10 +7,22 @@ import com.jinke.calligraphy.app.branch.Start;
+ import android.graphics.Bitmap;
+ import android.graphics.BitmapFactory;
+ import android.net.Uri;
++import android.util.Log;
+ 
+ public class BitmapUtils {
+ 	
+-	private static int computeSampleSize(InputStream stream, int maxResolutionX,
++	private volatile static BitmapUtils utils;
++	public static synchronized BitmapUtils getInstance(){
++		if(utils == null){
++			synchronized (BitmapUtils.class) {
++				if(utils == null)
++					utils = new BitmapUtils();
++			}
++		}
++		return utils;
++	}
++	
++	private int computeSampleSize(InputStream stream, int maxResolutionX,
+ 	        int maxResolutionY) {
+ 	        BitmapFactory.Options options = new BitmapFactory.Options();
+ 	        options.inJustDecodeBounds = true;
+@@ -21,7 +33,8 @@ public class BitmapUtils {
+ 	        return Utils.computeSampleSize(options, minSideLength, maxNumOfPixels);
+ 	    }
+ 	
+-	public static Bitmap getBitmapFromUri(Uri uri){
++	public synchronized Bitmap getBitmapFromUri(Uri uri){
++		Log.e("time", "getBitmapFromUri called" + uri);
+ 		Bitmap bitmap = null;
+ 		BitmapFactory.Options options = new BitmapFactory.Options();
+         options.inScaled = false; //如果需要一个非缩放位图的时候，应该关闭。打开时如果inDensity和inTargetDensity不为0，该位图将被缩放，
+@@ -57,9 +70,29 @@ public class BitmapUtils {
+ 		if(bufferedInput != null){
+ 			options.inDither = false;
+ 			options.inJustDecodeBounds = false;
+-			bitmap = BitmapFactory.decodeStream(bufferedInput, null, options);
++			try {
++				bitmap = BitmapFactory.decodeStream(bufferedInput, null, options);
++				Log.e("getBitmap", "uri:" + uri.toString());
++			} catch (OutOfMemoryError e) {
++//				options.inSampleSize *= 4;
++//				options.inDither = false;
++//				options.inJustDecodeBounds = false;
++//				try{
++//					Log.e("time", "oom uri:" + uri.toString() + (bufferedInput == null));
++//					bitmap = BitmapFactory.decodeStream(bufferedInput, null, options);
++//					Log.e("time", "decode twice" + (bitmap == null));
++//					return bitmap;
++//					
++//				}catch (OutOfMemoryError ee) {
++//					Log.e("time", "error twice");
++//					return null;
++//				}
++				return null;
++			}
++			Log.e("test", "bitmap width:" + bitmap.getWidth() + " height:" + bitmap.getHeight());
+ 		}
+-		
++		bufferedInput = null;
++		Log.e("time", "getBitmapFromUri called  end" + uri);
+ 		return bitmap;
+ 	}
+ }
+diff --git a/src/com/jinke/single/ScaleSave.java b/src/com/jinke/single/ScaleSave.java
+index 7a15c82..15d6985 100644
+--- a/src/com/jinke/single/ScaleSave.java
++++ b/src/com/jinke/single/ScaleSave.java
+@@ -16,7 +16,7 @@ public class ScaleSave {
+ 	PrintWriter write = null;
+ 	
+ 	private ScaleSave() throws IOException{
+-		write = new PrintWriter(new FileWriter(txtPath,true));
++//		write = new PrintWriter(new FileWriter(txtPath,true));
+ 		
+ 	}
+ 	private static ScaleSave instance = null;
+@@ -32,22 +32,22 @@ public class ScaleSave {
+ 	}
+ 	
+ 	public void insertScale(int currentPos,float distX,float distY,float Scale){
+-		String str = "";
+-		if(distY < 250.0f)
+-			str = "currentPos:" + currentPos + "-------- distX: " + distX + " distY:" + distY + " Scale:" + Scale;
+-		else
+-			str = "currentPos:" + currentPos + " distX: " + distX + " distY:" + distY + " Scale:" + Scale;
+-		write.append(str + "\n");
+-		write.flush();
++//		String str = "";
++//		if(distY < 250.0f)
++//			str = "currentPos:" + currentPos + "-------- distX: " + distX + " distY:" + distY + " Scale:" + Scale;
++//		else
++//			str = "currentPos:" + currentPos + " distX: " + distX + " distY:" + distY + " Scale:" + Scale;
++//		write.append(str + "\n");
++//		write.flush();
+ 	}
+ 	
+ 	public void close(){
+-		write.close();
++//		write.close();
+ 	}
+ 	
+ 	public void newPage(){
+-		write.append("---------------pagenum:" + Start.getPageNum() + "------------------------------------\n");
+-		write.flush();
++//		write.append("---------------pagenum:" + Start.getPageNum() + "------------------------------------\n");
++//		write.flush();
+ 	}
+ 	
+ }
+diff --git a/src/hallelujah/cal/CalligraphyVectorUtil.java b/src/hallelujah/cal/CalligraphyVectorUtil.java
+index b31a148..9549334 100644
+--- a/src/hallelujah/cal/CalligraphyVectorUtil.java
++++ b/src/hallelujah/cal/CalligraphyVectorUtil.java
+@@ -154,7 +154,7 @@ public class CalligraphyVectorUtil {
+ 						editItem.setMatrix(Start.c.view.getMMMatrix());
+ 
+ 					if(i > 250){
+-						editItem.getCharBitmap().recycle();
++						editItem.recycleBitmap();
+ 						BitmapCount.getInstance().recycleBitmap("CalligraphyVectorUtil getEditableListByParsedWordList i>250");	
+ 					}
+ 					editItemList.add(i,editItem);
+diff --git a/src/hallelujah/cal/Point.java b/src/hallelujah/cal/Point.java
+index bf93140..b013353 100755
+--- a/src/hallelujah/cal/Point.java
++++ b/src/hallelujah/cal/Point.java
+@@ -14,6 +14,8 @@ public class Point {
+ 	private float fOrientation = 0.0f;
+ 	private byte btToolType = 0x00;
+ 	
++	public Point(){
++	}
+ 	public long getTimeStamp() {
+ 		return lTimeStamp;
+ 	}
+diff --git a/src/hallelujah/cal/parser/ParserStroke.java b/src/hallelujah/cal/parser/ParserStroke.java
+index c34ea8e..809409e 100755
+--- a/src/hallelujah/cal/parser/ParserStroke.java
++++ b/src/hallelujah/cal/parser/ParserStroke.java
+@@ -42,7 +42,7 @@ public class ParserStroke {
+ 		}
+ 	}
+ 
+-	private static native Point nativeGetNextPoint(int nativeStroke);
++	public  native Point nativeGetNextPoint(int nativeStroke);
+ 
+ 	private native void nativeInit(int nativeStroke);
+ 
+-- 
+1.7.4.1
+

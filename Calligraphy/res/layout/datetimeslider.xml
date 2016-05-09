@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.jinke.calligraphy.date.SliderContainer
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/com.jinke.calligraphy.app.branch"
+    android:id="@+id/dateSliderContainer"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <com.jinke.calligraphy.date.ScrollLayout
+        style="@style/Scroller"
+        app:labelerClass="com.jinke.calligraphy.date.MonthYearLabeler"
+        app:labelerFormat="%tb %tY"
+        app:childWidth="180dp"
+        />
+    <com.jinke.calligraphy.date.ScrollLayout
+        style="@style/Scroller"
+        app:labelerClass="com.jinke.calligraphy.date.DayDateLabeler"
+        app:labelerFormat="%td %ta"
+        app:childWidth="120dp"/>
+    <com.jinke.calligraphy.date.ScrollLayout
+        style="@style/Scroller"
+        app:labelerClass="com.jinke.calligraphy.date.TimeLabeler"
+        app:labelerFormat="%tR"
+        app:childWidth="80dp"/>
+    <include layout="@layout/dialogbuttons"/>
+</com.jinke.calligraphy.date.SliderContainer>

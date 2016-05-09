@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>  
+<resources>  
+    <string-array name="Scene_bg">  
+          
+        <item>记事本</item>  
+        
+        <item>临摹</item>  
+        <item>竖版临摹</item>
+        <item>临摹1</item>
+        
+        <item>临摹4</item>
+        <item>临摹5</item>
+        <item>临摹6</item>
+        
+        
+        <!-- 
+	        <item>日记</item>
+	        <item>记事本1</item>  
+	        <item>记事本2</item>  
+	        <item>会议记录</item>
+	        <item>通讯录</item>
+	        <item>字帖</item>
+	        <item>临摹2</item>
+	        <item>临摹3</item>
+	        <item>临摹7</item>
+         -->
+    </string-array>
+</resources>  
